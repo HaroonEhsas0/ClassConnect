@@ -436,7 +436,7 @@ export class ApiService {
 
 
 
-  // News API for Tesla-related headlines with real data
+  // News API for AMD-related headlines with real data
   static async fetchAmdNews(): Promise<void> {
     const startTime = Date.now();
     const API_KEY = process.env.NEWS_API_KEY;

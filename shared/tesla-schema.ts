@@ -165,6 +165,6 @@ export type AmdDashboardData = {
   latestPrediction: AiPrediction;
   recentInsiderTrades: InsiderTrade[];
   recentTweets: never[]; // Twitter functionality removed
-  recentNews: NewsArticle[];
+  recentNews: never[]; // News functionality removed
   marketAnomalies: MarketAnomaly[];
 };

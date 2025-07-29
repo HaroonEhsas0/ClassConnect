@@ -120,17 +120,7 @@ router.get('/api/tesla/tweets', async (req, res) => {
   }
 });
 
-// Tesla news
-router.get('/api/tesla/news', async (req, res) => {
-  try {
-    const hours = parseInt(req.query.hours as string) || 24;
-    const news = await teslaStorage.getRecentNews(hours);
-    res.json(news);
-  } catch (error) {
-    console.error('News error:', error);
-    res.status(500).json({ error: 'Failed to fetch news' });
-  }
-});
+
 
 // Market anomalies
 router.get('/api/tesla/anomalies', async (req, res) => {

@@ -145,17 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Tesla news
-  app.get('/api/amd/news', async (req, res) => {
-    try {
-      const hours = parseInt(req.query.hours as string) || 24;
-      const news = await teslaStorage.getRecentNews(hours);
-      res.json(news);
-    } catch (error) {
-      console.error('News error:', error);
-      res.status(500).json({ error: 'Failed to fetch news' });
-    }
-  });
+
 
   // Manual data refresh endpoint
   app.post('/api/amd/refresh', async (req, res) => {

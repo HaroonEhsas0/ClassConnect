@@ -251,7 +251,7 @@ class AmdMemStorage implements IAmdStorage {
       latestPrediction: latestPrediction!,
       recentInsiderTrades,
       recentTweets: [],
-      recentNews,
+      recentNews: [],
       marketAnomalies,
     };
   }
@@ -434,7 +434,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       fundamentalData,
       latestPrediction,
       recentInsiderTrades,
-      recentTweets: [],
+      recentTweets,
       recentNews,
       marketAnomalies
     ] = await Promise.all([
@@ -444,7 +444,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       this.getLatestPrediction(),
       this.getRecentInsiderTrades(30),
       Promise.resolve([]), // Twitter functionality removed
-      this.getRecentNews(24),
+      Promise.resolve([]), // News functionality removed
       this.getRecentAnomalies(24)
     ]);
 
@@ -455,7 +455,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       latestPrediction: latestPrediction!,
       recentInsiderTrades,
       recentTweets: [],
-      recentNews,
+      recentNews: [],
       marketAnomalies,
     };
   }

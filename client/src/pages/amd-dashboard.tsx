@@ -19,7 +19,7 @@ import { useState } from 'react';
 import { PredictionPanel } from '@/components/tesla/prediction-panel';
 import { PriceChart } from '@/components/tesla/price-chart';
 
-import { NewsFeed } from '@/components/tesla/news-feed';
+// News functionality removed
 import { InsiderTrades } from '@/components/tesla/insider-trades';
 import type { AmdDashboardData } from '../../../shared/tesla-schema';
 
@@ -83,7 +83,7 @@ export default function AmdDashboard() {
     );
   }
 
-  const { currentPrice, technicalIndicators, latestPrediction, recentInsiderTrades, recentNews } = dashboardData;
+  const { currentPrice, technicalIndicators, latestPrediction, recentInsiderTrades } = dashboardData;
   const recentTweets = []; // Twitter functionality removed per user request
 
   // Show loading state if critical data is missing
@@ -347,34 +347,13 @@ export default function AmdDashboard() {
             </CardContent>
           </Card>
 
-          {/* News Sentiment */}
-          <Card className="bg-gray-800/50 border-gray-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-sm flex items-center">
-                <Newspaper className="h-4 w-4 mr-2" />
-                News Sentiment
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">{recentNews.length}</div>
-                <div className="text-xs text-gray-400">Recent Articles (24h)</div>
-                {recentNews.length > 0 && recentNews[0].sentimentScore && (
-                  <div className="mt-2">
-                    <Badge className={`${parseFloat(recentNews[0].sentimentScore) > 0 ? 'bg-green-500' : parseFloat(recentNews[0].sentimentScore) < 0 ? 'bg-red-500' : 'bg-gray-500'} text-white text-xs`}>
-                      {parseFloat(recentNews[0].sentimentScore) > 0 ? 'POSITIVE' : parseFloat(recentNews[0].sentimentScore) < 0 ? 'NEGATIVE' : 'NEUTRAL'}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          {/* News functionality removed per user request */}
         </div>
 
         {/* Detailed Information Panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PriceChart />
-          <NewsFeed news={recentNews} />
+          {/* News functionality removed per user request */}
         </div>
 
         {/* Insider Trades Detail */}

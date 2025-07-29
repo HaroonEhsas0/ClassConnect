@@ -40,7 +40,7 @@ export function NewsFeed({ news }: NewsFeedProps) {
         <CardTitle className="text-white flex items-center justify-between">
           <div className="flex items-center">
             <Newspaper className="h-5 w-5 mr-2" />
-            Tesla News
+            AMD News
           </div>
           <Badge className="bg-purple-500 text-white">
             {news.length} articles
