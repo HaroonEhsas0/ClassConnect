@@ -279,39 +279,19 @@ export class ApiService {
     }
   }
 
-  // Professional realistic market data when APIs are rate limited
+  // DEPRECATED: This method generates synthetic data - AMD system now uses only real market data
   static async generateRealisticMarketData(): Promise<void> {
-    console.log('📊 Generating professional-grade market data during API limits...');
+    console.log('⚠️  WARNING: Attempting to use synthetic data generation - this is disabled in production');
+    console.log('✅ AMD system only uses authentic market data from professional sources');
     
-    // Use current market session and AMD's typical trading patterns  
-    const basePrice = 176.39; // Recent AMD baseline
-    const marketHours = new Date().getHours();
-    const isMarketOpen = marketHours >= 9 && marketHours <= 16; // EST market hours
-    
-    // Market-realistic price movement
-    const volatility = isMarketOpen ? 0.008 : 0.003; // Higher volatility during market hours  
-    const trend = (Math.random() - 0.5) * 0.02; // ±2% daily trend
-    const intraday = (Math.random() - 0.5) * volatility * 2; // Intraday movement
-    
-    const currentPrice = basePrice * (1 + trend + intraday);
-    const previousClose = basePrice;
-    const change = currentPrice - previousClose;
-    const changePercent = (change / previousClose * 100);
-    
-    // Market-realistic volume (AMD averages 35-60M shares)
-    const baseVolume = 45000000;
-    const volumeMultiplier = isMarketOpen ? (1 + Math.random() * 0.8) : (0.3 + Math.random() * 0.4);
-    const volume = Math.floor(baseVolume * volumeMultiplier);
-
-    const stockData: InsertStockPrice = {
-      symbol: 'AMD',
-      price: currentPrice.toFixed(2),
-      change: change.toFixed(2),
-      changePercent: changePercent.toFixed(2),
-      volume: volume,
-    };
-
-    await teslaStorage.insertStockPrice(stockData);
+    // Instead of generating fake data, try to fetch from working APIs
+    try {
+      await this.fetchYahooFinanceData();
+      console.log('✅ Successfully fetched real Yahoo Finance data instead of synthetic data');
+    } catch (error) {
+      console.error('❌ Could not fetch real market data. System requires authentic data sources only.');
+      console.log('🔑 Please provide API keys for: ALPHA_VANTAGE_API_KEY, FINNHUB_API_KEY, OPENAI_API_KEY');
+    }
 
     // Professional technical indicators based on current price action
     const rsi = this.calculateRealisticRSI(changePercent);

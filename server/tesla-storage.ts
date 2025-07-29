@@ -1,231 +1,196 @@
-import { eq, desc, gte } from 'drizzle-orm';
-import * as teslaSchema from '../shared/tesla-schema';
-import { db } from './db';
-import type {
-  StockPrice, InsertStockPrice,
-  TechnicalIndicator, InsertTechnicalIndicator,
-  FundamentalData, InsertFundamentalData,
-  InsiderTrade, InsertInsiderTrade,
-  NewsArticle, InsertNewsArticle,
-  AiPrediction, InsertAiPrediction,
-  MarketAnomaly, InsertMarketAnomaly,
-  ApiLog, InsertApiLog,
+import crypto from 'crypto';
+import type { 
+  StockPrice, 
+  InsertStockPrice, 
+  TechnicalIndicator, 
+  InsertTechnicalIndicator,
+  FundamentalData,
+  InsertFundamentalData,
+  InsiderTrade,
+  InsertInsiderTrade,
+  NewsArticle,
+  InsertNewsArticle,
+  AiPrediction,
+  InsertAiPrediction,
+  MarketAnomaly,
+  InsertMarketAnomaly,
+  ApiLog,
+  InsertApiLog,
   AmdDashboardData
-} from '../shared/tesla-schema';
+} from '@shared/tesla-schema';
+
+import { db } from './db';
+import { 
+  stockPrices, 
+  technicalIndicators, 
+  fundamentalData, 
+  insiderTrades, 
+  newsArticles, 
+  aiPredictions, 
+  marketAnomalies, 
+  apiLogs 
+} from '@shared/tesla-schema';
+import { desc, eq, gte } from 'drizzle-orm';
 
 export interface IAmdStorage {
-  // Stock price operations
+  // Stock Price methods
   insertStockPrice(data: InsertStockPrice): Promise<StockPrice>;
   getLatestStockPrice(): Promise<StockPrice | null>;
   getStockPriceHistory(hours: number): Promise<StockPrice[]>;
-
-  // Technical indicators
+  
+  // Technical Indicators methods
   insertTechnicalIndicator(data: InsertTechnicalIndicator): Promise<TechnicalIndicator>;
   getLatestTechnicalIndicators(): Promise<TechnicalIndicator | null>;
-
-  // Fundamental data
+  
+  // Fundamental Data methods
   insertFundamentalData(data: InsertFundamentalData): Promise<FundamentalData>;
   getLatestFundamentalData(): Promise<FundamentalData | null>;
-
-  // Insider trades
+  
+  // Insider Trades methods
   insertInsiderTrade(data: InsertInsiderTrade): Promise<InsiderTrade>;
   getRecentInsiderTrades(days: number): Promise<InsiderTrade[]>;
-
-  // News articles
+  
+  // News methods
   insertNewsArticle(data: InsertNewsArticle): Promise<NewsArticle>;
   getRecentNews(hours: number): Promise<NewsArticle[]>;
-
-  // AI predictions
+  
+  // AI Predictions methods
   insertAiPrediction(data: InsertAiPrediction): Promise<AiPrediction>;
   getLatestPrediction(): Promise<AiPrediction | null>;
-  getPredictionHistory(days: number): Promise<AiPrediction[]>;
-
-  // Market anomalies
+  
+  // Market Anomalies methods
   insertMarketAnomaly(data: InsertMarketAnomaly): Promise<MarketAnomaly>;
   getRecentAnomalies(hours: number): Promise<MarketAnomaly[]>;
-
-  // API logs
+  
+  // API Logs methods
   insertApiLog(data: InsertApiLog): Promise<ApiLog>;
-  getApiStats(hours: number): Promise<{ provider: string; success: number; failure: number; avgResponseTime: number }[]>;
-
-  // Dashboard data aggregation
+  getApiStats(): Promise<Array<{ provider: string; success: number; failure: number; avgResponseTime: number }>>;
+  
+  // Dashboard data
   getDashboardData(): Promise<AmdDashboardData>;
 }
 
-// Database Storage Implementation
+// Database Storage Implementation (Primary)
 class AmdDatabaseStorage implements IAmdStorage {
   async insertStockPrice(data: InsertStockPrice): Promise<StockPrice> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.stockPrices)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(stockPrices).values(data).returning();
     return result;
   }
 
   async getLatestStockPrice(): Promise<StockPrice | null> {
-    if (!db) throw new Error('Database not connected');
     const [result] = await db
       .select()
-      .from(teslaSchema.stockPrices)
-      .orderBy(desc(teslaSchema.stockPrices.timestamp))
+      .from(stockPrices)
+      .where(eq(stockPrices.symbol, 'AMD'))
+      .orderBy(desc(stockPrices.timestamp))
       .limit(1);
     return result || null;
   }
 
   async getStockPriceHistory(hours: number): Promise<StockPrice[]> {
-    if (!db) throw new Error('Database not connected');
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
     return await db
       .select()
-      .from(teslaSchema.stockPrices)
-      .where(gte(teslaSchema.stockPrices.timestamp, cutoff))
-      .orderBy(desc(teslaSchema.stockPrices.timestamp));
+      .from(stockPrices)
+      .where(gte(stockPrices.timestamp, hoursAgo))
+      .orderBy(desc(stockPrices.timestamp));
   }
 
   async insertTechnicalIndicator(data: InsertTechnicalIndicator): Promise<TechnicalIndicator> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.technicalIndicators)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(technicalIndicators).values(data).returning();
     return result;
   }
 
   async getLatestTechnicalIndicators(): Promise<TechnicalIndicator | null> {
-    if (!db) throw new Error('Database not connected');
     const [result] = await db
       .select()
-      .from(teslaSchema.technicalIndicators)
-      .orderBy(desc(teslaSchema.technicalIndicators.timestamp))
+      .from(technicalIndicators)
+      .where(eq(technicalIndicators.symbol, 'AMD'))
+      .orderBy(desc(technicalIndicators.timestamp))
       .limit(1);
     return result || null;
   }
 
   async insertFundamentalData(data: InsertFundamentalData): Promise<FundamentalData> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.fundamentalData)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(fundamentalData).values(data).returning();
     return result;
   }
 
   async getLatestFundamentalData(): Promise<FundamentalData | null> {
-    if (!db) throw new Error('Database not connected');
     const [result] = await db
       .select()
-      .from(teslaSchema.fundamentalData)
-      .orderBy(desc(teslaSchema.fundamentalData.timestamp))
+      .from(fundamentalData)
+      .where(eq(fundamentalData.symbol, 'AMD'))
+      .orderBy(desc(fundamentalData.timestamp))
       .limit(1);
     return result || null;
   }
 
   async insertInsiderTrade(data: InsertInsiderTrade): Promise<InsiderTrade> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.insiderTrades)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(insiderTrades).values(data).returning();
     return result;
   }
 
   async getRecentInsiderTrades(days: number): Promise<InsiderTrade[]> {
-    if (!db) throw new Error('Database not connected');
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const daysAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     return await db
       .select()
-      .from(teslaSchema.insiderTrades)
-      .where(gte(teslaSchema.insiderTrades.transactionDate, cutoff))
-      .orderBy(desc(teslaSchema.insiderTrades.transactionDate))
-      .limit(10);
+      .from(insiderTrades)
+      .where(gte(insiderTrades.timestamp, daysAgo))
+      .orderBy(desc(insiderTrades.timestamp));
   }
 
   async insertNewsArticle(data: InsertNewsArticle): Promise<NewsArticle> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.newsArticles)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(newsArticles).values(data).returning();
     return result;
   }
 
   async getRecentNews(hours: number): Promise<NewsArticle[]> {
-    if (!db) throw new Error('Database not connected');
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
     return await db
       .select()
-      .from(teslaSchema.newsArticles)
-      .where(gte(teslaSchema.newsArticles.publishedAt, cutoff))
-      .orderBy(desc(teslaSchema.newsArticles.publishedAt))
-      .limit(10);
+      .from(newsArticles)
+      .where(gte(newsArticles.timestamp, hoursAgo))
+      .orderBy(desc(newsArticles.timestamp));
   }
 
   async insertAiPrediction(data: InsertAiPrediction): Promise<AiPrediction> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.aiPredictions)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(aiPredictions).values(data).returning();
     return result;
   }
 
   async getLatestPrediction(): Promise<AiPrediction | null> {
-    if (!db) throw new Error('Database not connected');
     const [result] = await db
       .select()
-      .from(teslaSchema.aiPredictions)
-      .orderBy(desc(teslaSchema.aiPredictions.timestamp))
+      .from(aiPredictions)
+      .where(eq(aiPredictions.symbol, 'AMD'))
+      .orderBy(desc(aiPredictions.timestamp))
       .limit(1);
     return result || null;
   }
 
-  async getPredictionHistory(days: number): Promise<AiPrediction[]> {
-    if (!db) throw new Error('Database not connected');
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    return await db
-      .select()
-      .from(teslaSchema.aiPredictions)
-      .where(gte(teslaSchema.aiPredictions.timestamp, cutoff))
-      .orderBy(desc(teslaSchema.aiPredictions.timestamp));
-  }
-
   async insertMarketAnomaly(data: InsertMarketAnomaly): Promise<MarketAnomaly> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.marketAnomalies)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(marketAnomalies).values(data).returning();
     return result;
   }
 
   async getRecentAnomalies(hours: number): Promise<MarketAnomaly[]> {
-    if (!db) throw new Error('Database not connected');
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
     return await db
       .select()
-      .from(teslaSchema.marketAnomalies)
-      .where(gte(teslaSchema.marketAnomalies.timestamp, cutoff))
-      .orderBy(desc(teslaSchema.marketAnomalies.timestamp));
+      .from(marketAnomalies)
+      .where(gte(marketAnomalies.timestamp, hoursAgo))
+      .orderBy(desc(marketAnomalies.timestamp));
   }
 
   async insertApiLog(data: InsertApiLog): Promise<ApiLog> {
-    if (!db) throw new Error('Database not connected');
-    const [result] = await db
-      .insert(teslaSchema.apiLogs)
-      .values(data)
-      .returning();
+    const [result] = await db.insert(apiLogs).values(data).returning();
     return result;
   }
 
-  async getApiStats(hours: number): Promise<{ provider: string; success: number; failure: number; avgResponseTime: number }[]> {
-    if (!db) throw new Error('Database not connected');
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const logs = await db
-      .select()
-      .from(teslaSchema.apiLogs)
-      .where(gte(teslaSchema.apiLogs.timestamp, cutoff));
-
+  async getApiStats(): Promise<Array<{ provider: string; success: number; failure: number; avgResponseTime: number }>> {
+    const logs = await db.select().from(apiLogs);
+    
     const stats = logs.reduce((acc, log) => {
       if (!acc[log.provider]) {
         acc[log.provider] = { success: 0, failure: 0, totalTime: 0, count: 0 };
@@ -270,45 +235,45 @@ class AmdDatabaseStorage implements IAmdStorage {
 
     return {
       currentPrice: currentPrice || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        price: '0.00',
-        change: '0.00',
-        changePercent: '0.00',
+        price: 'N/A',
+        change: 'N/A',
+        changePercent: 'N/A',
         volume: 0,
         timestamp: new Date(),
       },
       technicalIndicators: technicalIndicators || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        rsi: '50.00',
-        macd: '0.00',
-        macdSignal: '0.00',
-        sma20: '0.00',
-        sma50: '0.00',
-        ema12: '0.00',
-        ema26: '0.00',
+        rsi: null,
+        macd: null,
+        macdSignal: null,
+        sma20: null,
+        sma50: null,
+        ema12: null,
+        ema26: null,
         timestamp: new Date(),
       },
       fundamentalData: fundamentalData || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        peRatio: '0.00',
-        marketCap: '0.00',
-        beta: '1.000',
-        eps: '0.00',
-        revenue: '0.00',
-        earningsDate: new Date(),
+        peRatio: null,
+        marketCap: null,
+        beta: null,
+        eps: null,
+        revenue: null,
+        earningsDate: null,
         timestamp: new Date(),
       },
       prediction: prediction || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        predictedPrice: '0.00',
-        confidence: '0.00',
+        predictedPrice: 'N/A',
+        confidence: 'N/A',
         direction: 'neutral',
-        reasoning: 'No prediction available',
-        priceTarget: '0.00',
+        reasoning: 'Professional prediction requires real market data - please provide API keys for accurate forecasts',
+        priceTarget: 'N/A',
         timeHorizon: '1d',
         timestamp: new Date(),
       },
@@ -346,9 +311,9 @@ class AmdMemStorage implements IAmdStorage {
   }
 
   async getStockPriceHistory(hours: number): Promise<StockPrice[]> {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
     return this.stockPrices
-      .filter(price => price.timestamp >= cutoff)
+      .filter(price => price.timestamp >= hoursAgo)
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
@@ -391,11 +356,10 @@ class AmdMemStorage implements IAmdStorage {
   }
 
   async getRecentInsiderTrades(days: number): Promise<InsiderTrade[]> {
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const daysAgo = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     return this.insiderTrades
-      .filter(trade => trade.transactionDate >= cutoff)
-      .sort((a, b) => b.transactionDate.getTime() - a.transactionDate.getTime())
-      .slice(0, 10);
+      .filter(trade => trade.timestamp >= daysAgo)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
   async insertNewsArticle(data: InsertNewsArticle): Promise<NewsArticle> {
@@ -409,11 +373,10 @@ class AmdMemStorage implements IAmdStorage {
   }
 
   async getRecentNews(hours: number): Promise<NewsArticle[]> {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
     return this.newsArticles
-      .filter(article => article.publishedAt >= cutoff)
-      .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
-      .slice(0, 10);
+      .filter(article => article.timestamp >= hoursAgo)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
   async insertAiPrediction(data: InsertAiPrediction): Promise<AiPrediction> {
@@ -430,13 +393,6 @@ class AmdMemStorage implements IAmdStorage {
     return this.aiPredictions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())[0] || null;
   }
 
-  async getPredictionHistory(days: number): Promise<AiPrediction[]> {
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    return this.aiPredictions
-      .filter(prediction => prediction.timestamp >= cutoff)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }
-
   async insertMarketAnomaly(data: InsertMarketAnomaly): Promise<MarketAnomaly> {
     const anomaly: MarketAnomaly = {
       id: crypto.randomUUID(),
@@ -448,9 +404,9 @@ class AmdMemStorage implements IAmdStorage {
   }
 
   async getRecentAnomalies(hours: number): Promise<MarketAnomaly[]> {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const hoursAgo = new Date(Date.now() - hours * 60 * 60 * 1000);
     return this.marketAnomalies
-      .filter(anomaly => anomaly.timestamp >= cutoff)
+      .filter(anomaly => anomaly.timestamp >= hoursAgo)
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
@@ -464,11 +420,8 @@ class AmdMemStorage implements IAmdStorage {
     return log;
   }
 
-  async getApiStats(hours: number): Promise<{ provider: string; success: number; failure: number; avgResponseTime: number }[]> {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const recentLogs = this.apiLogs.filter(log => log.timestamp >= cutoff);
-    
-    const stats = recentLogs.reduce((acc, log) => {
+  async getApiStats(): Promise<Array<{ provider: string; success: number; failure: number; avgResponseTime: number }>> {
+    const stats = this.apiLogs.reduce((acc, log) => {
       if (!acc[log.provider]) {
         acc[log.provider] = { success: 0, failure: 0, totalTime: 0, count: 0 };
       }
@@ -512,45 +465,45 @@ class AmdMemStorage implements IAmdStorage {
 
     return {
       currentPrice: currentPrice || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        price: '0.00',
-        change: '0.00',
-        changePercent: '0.00',
+        price: 'N/A',
+        change: 'N/A',
+        changePercent: 'N/A',
         volume: 0,
         timestamp: new Date(),
       },
       technicalIndicators: technicalIndicators || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        rsi: '50.00',
-        macd: '0.00',
-        macdSignal: '0.00',
-        sma20: '0.00',
-        sma50: '0.00',
-        ema12: '0.00',
-        ema26: '0.00',
+        rsi: null,
+        macd: null,
+        macdSignal: null,
+        sma20: null,
+        sma50: null,
+        ema12: null,
+        ema26: null,
         timestamp: new Date(),
       },
       fundamentalData: fundamentalData || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        peRatio: '0.00',
-        marketCap: '0.00',
-        beta: '1.000',
-        eps: '0.00',
-        revenue: '0.00',
-        earningsDate: new Date(),
+        peRatio: null,
+        marketCap: null,
+        beta: null,
+        eps: null,
+        revenue: null,
+        earningsDate: null,
         timestamp: new Date(),
       },
       prediction: prediction || {
-        id: 'no-data',
+        id: 'no-real-data',
         symbol: 'AMD',
-        predictedPrice: '0.00',
-        confidence: '0.00',
+        predictedPrice: 'N/A',
+        confidence: 'N/A',
         direction: 'neutral',
-        reasoning: 'No prediction available',
-        priceTarget: '0.00',
+        reasoning: 'Professional prediction requires real market data - please provide API keys for accurate forecasts',
+        priceTarget: 'N/A',
         timeHorizon: '1d',
         timestamp: new Date(),
       },
