@@ -78,19 +78,21 @@ export const newsArticles = pgTable('news_articles', {
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 
-// AI predictions and recommendations
+// AI predictions and recommendations with price ranges
 export const aiPredictions = pgTable('ai_predictions', {
   id: uuid('id').defaultRandom().primaryKey(),
   symbol: text('symbol').notNull().default('AMD'),
   currentPrice: decimal('current_price', { precision: 10, scale: 2 }).notNull(),
-  predictedPrice: decimal('predicted_price', { precision: 10, scale: 2 }).notNull(),
-  predictionDays: integer('prediction_days').notNull().default(5),
-  confidence: decimal('confidence', { precision: 5, scale: 2 }).notNull(), // 0-100
-  aiRating: integer('ai_rating').notNull(), // 0-100
+  predictedPrice: text('predicted_price').notNull(), // Now stores ranges like "180.50-185.25"
+  priceRangeLow: decimal('price_range_low', { precision: 10, scale: 2 }), // Explicit low range
+  priceRangeHigh: decimal('price_range_high', { precision: 10, scale: 2 }), // Explicit high range
+  predictionDays: integer('prediction_days').notNull().default(1),
+  confidence: decimal('confidence', { precision: 5, scale: 2 }).notNull(), // 60-95
+  aiRating: integer('ai_rating').notNull(), // 60-95 (same as confidence)
   recommendation: text('recommendation').notNull(), // 'strong_buy', 'buy', 'hold', 'sell', 'strong_sell'
   riskLevel: text('risk_level').notNull(), // 'low', 'medium', 'high'
   reasoning: text('reasoning').notNull(),
-  modelUsed: text('model_used').notNull(), // 'prophet', 'xgboost', 'lstm', 'ensemble'
+  modelUsed: text('model_used').notNull(), // 'enhanced-realtime-v4-range', 'gpt-3.5-turbo-range'
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 

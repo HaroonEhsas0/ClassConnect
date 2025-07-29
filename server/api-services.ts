@@ -245,20 +245,25 @@ export class ApiService {
       // Enhanced scoring with proper balance (scores can now be negative for strong SELL signals)
       score = Math.max(-30, Math.min(100, score));
       
-      // Calculate predicted price based on comprehensive analysis (can predict downward movements)
+      // Calculate predicted price RANGE with enhanced accuracy
       const priceVariation = score / 100; // Convert to percentage (-30 to 100)
       // Enhanced scaling to allow proper downward predictions
-      let predictedPrice;
+      let centerPrice;
       if (score < 0) {
         // Strong bearish prediction - can predict significant drops
-        predictedPrice = currentPriceNum * (1 + priceVariation * 0.025); // Larger variation for bearish signals
+        centerPrice = currentPriceNum * (1 + priceVariation * 0.025); // Larger variation for bearish signals
       } else if (score < 40) {
         // Mild bearish to neutral - small downward prediction
-        predictedPrice = currentPriceNum * (1 + (score - 50) / 100 * 0.02);
+        centerPrice = currentPriceNum * (1 + (score - 50) / 100 * 0.02);
       } else {
         // Bullish prediction
-        predictedPrice = currentPriceNum * (1 + priceVariation * 0.018);
+        centerPrice = currentPriceNum * (1 + priceVariation * 0.018);
       }
+      
+      // Create realistic price range based on volatility and confidence
+      const volatilityFactor = Math.abs(score) < 20 ? 0.015 : Math.abs(score) > 70 ? 0.035 : 0.025;
+      const rangeLow = centerPrice * (1 - volatilityFactor);
+      const rangeHigh = centerPrice * (1 + volatilityFactor);
       
       // Determine recommendation and risk level based on enhanced scoring
       let recommendation: string;
@@ -292,14 +297,16 @@ export class ApiService {
       const predictionData = {
         symbol: 'AMD',
         currentPrice: currentPrice.price,
-        predictedPrice: predictedPrice.toFixed(2),
+        predictedPrice: `${rangeLow.toFixed(2)}-${rangeHigh.toFixed(2)}`, // Price range instead of exact
+        priceRangeLow: rangeLow.toFixed(2),
+        priceRangeHigh: rangeHigh.toFixed(2),
         predictionDays: 1,
         confidence: Math.max(60, Math.min(95, 70 + Math.abs(score))).toFixed(0),
         aiRating: Math.max(60, Math.min(95, 70 + Math.abs(score))), // Use same confidence system
         recommendation,
         riskLevel,
-        reasoning: reasons.length > 0 ? reasons.join('. ') + '. Real-time analysis based on current market conditions.' : 'Real-time prediction based on technical analysis and market momentum',
-        modelUsed: 'enhanced-realtime-v3',
+        reasoning: reasons.length > 0 ? `Price range prediction: $${rangeLow.toFixed(2)} - $${rangeHigh.toFixed(2)}. ` + reasons.join('. ') + '. Real-time analysis based on current market conditions.' : `Price range prediction: $${rangeLow.toFixed(2)} - $${rangeHigh.toFixed(2)}. Real-time prediction based on technical analysis and market momentum`,
+        modelUsed: 'enhanced-realtime-v4-range',
       };
 
       await teslaStorage.insertAiPrediction(predictionData);
@@ -309,7 +316,7 @@ export class ApiService {
       cache.setCachedPrediction('AMD', predictionData);
       
       const finalConfidence = Math.max(60, Math.min(95, 70 + Math.abs(score)));
-      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} (${finalConfidence}% confidence)`);
+      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} | Range: $${rangeLow.toFixed(2)}-$${rangeHigh.toFixed(2)} (${finalConfidence}% confidence)`);
       
     } catch (error) {
       await this.logApiCall('ai_engine', 'enhanced_prediction', false, Date.now() - startTime, (error as Error).message);
@@ -361,14 +368,15 @@ TECHNICAL INDICATORS:
 NEWS SENTIMENT:
 ${recentNews?.slice(0, 5).map(n => `- ${n.headline} (Sentiment: ${n.sentimentScore})`).join('\n') || 'No recent news available'}
 
-Provide ONLY valid JSON response:
+Provide ONLY valid JSON response with PRICE RANGE (not exact price):
 {
-  "predictedPrice": number,
+  "priceRangeLow": number,
+  "priceRangeHigh": number,
   "confidence": 65-95,
-  "aiRating": 1-100,
+  "aiRating": 65-95,
   "recommendation": "strong_buy|buy|hold|sell|strong_sell",
   "riskLevel": "low|medium|high",
-  "reasoning": "detailed explanation focusing on the 1-day price target"
+  "reasoning": "detailed explanation focusing on the 1-day price range prediction"
 }`;
 
       // Call OpenAI API with correct endpoint
@@ -399,24 +407,26 @@ Provide ONLY valid JSON response:
 
       const aiPrediction = JSON.parse(aiResponse.data.choices[0].message.content);
       
-      // Store advanced prediction
+      // Store advanced prediction with price range
       const advancedPredictionData = {
         symbol: 'AMD',
         currentPrice: currentPrice.price,
-        predictedPrice: aiPrediction.predictedPrice,
+        predictedPrice: `${aiPrediction.priceRangeLow}-${aiPrediction.priceRangeHigh}`, // Store as range
+        priceRangeLow: aiPrediction.priceRangeLow.toFixed(2),
+        priceRangeHigh: aiPrediction.priceRangeHigh.toFixed(2),
         predictionDays: 1,
         confidence: aiPrediction.confidence.toString(),
         aiRating: parseInt(aiPrediction.confidence), // Use same confidence for both
         recommendation: aiPrediction.recommendation,
         riskLevel: aiPrediction.riskLevel,
-        reasoning: aiPrediction.reasoning,
-        modelUsed: 'gpt-3.5-turbo-enhanced',
+        reasoning: `Range: $${aiPrediction.priceRangeLow.toFixed(2)}-$${aiPrediction.priceRangeHigh.toFixed(2)}. ${aiPrediction.reasoning}`,
+        modelUsed: 'gpt-3.5-turbo-range',
       };
 
       await teslaStorage.insertAiPrediction(advancedPredictionData);
       await this.logApiCall('openai', 'chat/completions', true, Date.now() - startTime);
       
-      console.log(`🤖 Advanced OpenAI Prediction: ${aiPrediction.recommendation.replace('_', ' ').toUpperCase()} (${aiPrediction.confidence}% confidence)`);
+      console.log(`🤖 Advanced OpenAI Prediction: ${aiPrediction.recommendation.replace('_', ' ').toUpperCase()} | Range: $${aiPrediction.priceRangeLow.toFixed(2)}-$${aiPrediction.priceRangeHigh.toFixed(2)} (${aiPrediction.confidence}% confidence)`);
       
     } catch (error) {
       console.error('Advanced AI Prediction error:', error);
