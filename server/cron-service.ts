@@ -42,11 +42,12 @@ export class CronService {
       }
     });
 
-    // Generate AI predictions every hour during market hours
-    const predictionJob = cron.schedule('0 9-16 * * 1-5', async () => {
-      console.log('🔄 Generating AI predictions...');
+    // Generate AI predictions every 10 minutes during market hours for real-time analysis
+    const predictionJob = cron.schedule('*/10 9-16 * * 1-5', async () => {
+      console.log('🔄 Generating real-time AI predictions...');
       try {
         await ApiService.generateAiPrediction();
+        await ApiService.generateAdvancedAiPrediction(); // OpenAI-powered predictions if available
       } catch (error) {
         console.error('AI prediction error:', error);
       }

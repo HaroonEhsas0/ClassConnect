@@ -478,49 +478,170 @@ export class ApiService {
     }
   }
 
-  // AI Prediction Engine (simplified for demo)
+  // Enhanced Real-Time AI Prediction Engine
   static async generateAiPrediction(): Promise<void> {
     const startTime = Date.now();
     
     try {
-      const currentPrice = await teslaStorage.getLatestStockPrice();
-      const technicalIndicators = await teslaStorage.getLatestTechnicalIndicators();
-      const recentTweets = [];
-      const recentNews = await teslaStorage.getRecentNews(24);
+      const [currentPrice, technicalIndicators, recentNews, priceHistory, fundamentalData] = await Promise.all([
+        teslaStorage.getLatestStockPrice(),
+        teslaStorage.getLatestTechnicalIndicators(),  
+        teslaStorage.getRecentNews(24),
+        teslaStorage.getStockPriceHistory(24),
+        teslaStorage.getLatestFundamentalData()
+      ]);
 
       if (!currentPrice) {
-        console.log('Missing required data for advanced prediction');
+        console.log('⚠️  Real-time data required for AI predictions');
         return;
       }
 
-      // Create fallback technical indicators if missing
-      const safeIndicators = technicalIndicators || {
-        symbol: 'AMD',
-        rsi: null,
-        macd: null,
-        macdSignal: null,
-        sma20: null,
-        sma50: null,
-        timestamp: new Date().toISOString()
-      };
+      console.log('🧠 Generating enhanced AI prediction with live market data...');
 
-      // Simplified AI prediction algorithm
+      // Real-time prediction algorithm using current market conditions  
       let score = 50; // Neutral baseline
       const currentPriceNum = parseFloat(currentPrice.price);
+      const reasons: string[] = [];
       
-      // Technical analysis factors (use safe indicators)
-      if (safeIndicators.rsi) {
-        const rsi = parseFloat(safeIndicators.rsi);
-        if (rsi > 70) score -= 10; // Overbought
-        else if (rsi < 30) score += 15; // Oversold
-        else if (rsi > 50) score += 5; // Bullish momentum
+      // Price momentum analysis (enhanced)
+      const changePercent = parseFloat(currentPrice.changePercent);
+      if (Math.abs(changePercent) > 0) {
+        if (changePercent > 2) {
+          score += 12;
+          reasons.push(`Strong bullish momentum (+${changePercent.toFixed(2)}%)`);
+        } else if (changePercent > 0.5) {
+          score += 6;
+          reasons.push(`Positive price momentum (+${changePercent.toFixed(2)}%)`);
+        } else if (changePercent < -2) {
+          score -= 8;
+          reasons.push(`Bearish momentum (${changePercent.toFixed(2)}%)`);
+        } else if (changePercent < -0.5) {
+          score -= 4;
+          reasons.push(`Negative price action (${changePercent.toFixed(2)}%)`);
+        }
       }
 
-      if (safeIndicators.macd && safeIndicators.macdSignal) {
-        const macd = parseFloat(safeIndicators.macd);
-        const signal = parseFloat(safeIndicators.macdSignal);
-        if (macd > signal) score += 8; // Bullish crossover
-        else score -= 5;
+      // Volume analysis
+      const volume = currentPrice.volume;
+      if (volume > 50000000) { // High volume threshold for AMD
+        score += 5;
+        reasons.push(`High trading volume indicates strong interest (${(volume/1000000).toFixed(1)}M shares)`);
+      } else if (volume < 20000000) {
+        score -= 3;
+        reasons.push('Low volume suggests weak conviction');
+      }
+
+      // Technical indicators analysis (enhanced)
+      if (technicalIndicators?.rsi) {
+        const rsi = parseFloat(technicalIndicators.rsi);
+        if (rsi > 75) {
+          score -= 12;
+          reasons.push(`Severely overbought (RSI: ${rsi.toFixed(1)})`);
+        } else if (rsi > 70) {
+          score -= 6;
+          reasons.push(`Overbought conditions (RSI: ${rsi.toFixed(1)})`);
+        } else if (rsi < 25) {
+          score += 15;
+          reasons.push(`Oversold opportunity (RSI: ${rsi.toFixed(1)})`);
+        } else if (rsi < 30) {
+          score += 8;
+          reasons.push(`Oversold conditions (RSI: ${rsi.toFixed(1)})`);
+        } else if (rsi > 50) {
+          score += 3;
+          reasons.push(`Bullish momentum (RSI: ${rsi.toFixed(1)})`);
+        }
+      }
+
+      if (technicalIndicators?.macd && technicalIndicators?.macdSignal) {
+        const macd = parseFloat(technicalIndicators.macd);
+        const signal = parseFloat(technicalIndicators.macdSignal);
+        const difference = macd - signal;
+        
+        if (difference > 0.5) {
+          score += 10;
+          reasons.push('Strong MACD bullish crossover');
+        } else if (difference > 0) {
+          score += 5;
+          reasons.push('MACD above signal line');
+        } else if (difference < -0.5) {
+          score -= 8;
+          reasons.push('MACD bearish crossover');
+        } else {
+          score -= 3;
+          reasons.push('MACD below signal line');
+        }
+      }
+
+      // Moving average analysis
+      if (technicalIndicators?.sma20 && technicalIndicators?.sma50) {
+        const sma20 = parseFloat(technicalIndicators.sma20);
+        const sma50 = parseFloat(technicalIndicators.sma50);
+        
+        if (currentPriceNum > sma20 && sma20 > sma50) {
+          score += 8;
+          reasons.push('Price above both SMAs - bullish trend');
+        } else if (currentPriceNum < sma20 && sma20 < sma50) {
+          score -= 6;
+          reasons.push('Price below both SMAs - bearish trend');
+        }
+      }
+
+      // Price history volatility and trend analysis
+      if (priceHistory && priceHistory.length > 5) {
+        const recentPrices = priceHistory.slice(0, 5).map(p => parseFloat(p.price));
+        const avgPrice = recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length;
+        const volatility = Math.sqrt(recentPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) / recentPrices.length);
+        
+        if (volatility > 5) {
+          score -= 5;
+          reasons.push('High volatility increases uncertainty');
+        } else if (volatility < 2) {
+          score += 3;
+          reasons.push('Low volatility suggests stability');
+        }
+        
+        // Trend analysis
+        const trend = currentPriceNum - recentPrices[recentPrices.length - 1];
+        if (trend > 2) {
+          score += 6;
+          reasons.push('Strong upward price trend');
+        } else if (trend < -2) {
+          score -= 4;
+          reasons.push('Downward price trend');
+        }
+      }
+
+      // News sentiment analysis
+      if (recentNews && recentNews.length > 0) {
+        const avgSentiment = recentNews.reduce((sum, news) => sum + parseFloat(news.sentimentScore), 0) / recentNews.length;
+        const relevantNewsCount = recentNews.filter(news => parseFloat(news.relevanceScore) > 6).length;
+        
+        if (avgSentiment > 0.3) {
+          score += 8;
+          reasons.push(`Positive news sentiment (${avgSentiment.toFixed(2)})`);
+        } else if (avgSentiment < -0.3) {
+          score -= 6;
+          reasons.push(`Negative news sentiment (${avgSentiment.toFixed(2)})`);
+        }
+        
+        if (relevantNewsCount > 3) {
+          score += 3;
+          reasons.push(`High news activity (${relevantNewsCount} relevant articles)`);
+        }
+      }
+
+      // Market timing factors
+      const currentHour = new Date().getHours();
+      const currentDay = new Date().getDay();
+      
+      if (currentDay >= 1 && currentDay <= 5) { // Weekday
+        if (currentHour >= 9 && currentHour <= 11) {
+          score += 2;
+          reasons.push('Market opening hours - higher activity');
+        } else if (currentHour >= 15 && currentHour <= 16) {
+          score += 1;
+          reasons.push('Power hour - increased trading');
+        }
       }
 
       // Price momentum
