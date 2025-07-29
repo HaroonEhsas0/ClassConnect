@@ -10,9 +10,11 @@ import {
   Clock,
   Shield,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AdvancedPrediction {
   currentPrice: number;
@@ -32,16 +34,19 @@ interface AdvancedPrediction {
 
 export function AdvancedPredictionPanel() {
   const [showDetails, setShowDetails] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: prediction, isLoading, error } = useQuery<AdvancedPrediction>({
     queryKey: ['/api/amd/market-close-prediction'],
-    refetchInterval: 60000, // Refresh every minute (stable predictions)
-    staleTime: 30000, // Consider stale after 30 seconds
+    refetchInterval: 30 * 60 * 1000, // Refresh every 30 minutes (stable predictions)
+    staleTime: 25 * 60 * 1000, // Consider stale after 25 minutes
   });
 
   const { data: marketForecast } = useQuery({
     queryKey: ['/api/amd/market-close-forecast'],
-    refetchInterval: 120000, // Refresh every 2 minutes (very stable)
+    refetchInterval: 30 * 60 * 1000, // Refresh every 30 minutes (very stable)
+    staleTime: 25 * 60 * 1000, // Consider stale after 25 minutes
   });
 
   if (isLoading) {
@@ -105,6 +110,19 @@ export function AdvancedPredictionPanel() {
   
   const timeSinceUpdate = new Date().getTime() - new Date(prediction.lastUpdated).getTime();
   const minutesSinceUpdate = Math.floor(timeSinceUpdate / (1000 * 60));
+  
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['/api/amd/market-close-prediction'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/amd/market-close-prediction'] });
+    } finally {
+      setTimeout(() => setRefreshing(false), 1000);
+    }
+  };
+  
+  const isStable = minutesSinceUpdate < 30; // Stable if updated within 30 minutes
+  const nextUpdateIn = 30 - minutesSinceUpdate;
 
   return (
     <Card className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border-purple-500/30">
