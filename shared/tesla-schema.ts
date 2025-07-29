@@ -5,7 +5,7 @@ import { z } from 'zod';
 // Stock price data table
 export const stockPrices = pgTable('stock_prices', {
   id: uuid('id').defaultRandom().primaryKey(),
-  symbol: text('symbol').notNull().default('TSLA'),
+  symbol: text('symbol').notNull().default('AMD'),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   change: decimal('change', { precision: 10, scale: 2 }).notNull(),
   changePercent: decimal('change_percent', { precision: 5, scale: 2 }).notNull(),
@@ -16,7 +16,7 @@ export const stockPrices = pgTable('stock_prices', {
 // Technical indicators table
 export const technicalIndicators = pgTable('technical_indicators', {
   id: uuid('id').defaultRandom().primaryKey(),
-  symbol: text('symbol').notNull().default('TSLA'),
+  symbol: text('symbol').notNull().default('AMD'),
   rsi: decimal('rsi', { precision: 5, scale: 2 }),
   macd: decimal('macd', { precision: 10, scale: 4 }),
   macdSignal: decimal('macd_signal', { precision: 10, scale: 4 }),
@@ -30,7 +30,7 @@ export const technicalIndicators = pgTable('technical_indicators', {
 // Fundamental data table
 export const fundamentalData = pgTable('fundamental_data', {
   id: uuid('id').defaultRandom().primaryKey(),
-  symbol: text('symbol').notNull().default('TSLA'),
+  symbol: text('symbol').notNull().default('AMD'),
   peRatio: decimal('pe_ratio', { precision: 10, scale: 2 }),
   marketCap: decimal('market_cap', { precision: 15, scale: 2 }),
   beta: decimal('beta', { precision: 5, scale: 3 }),
@@ -43,7 +43,7 @@ export const fundamentalData = pgTable('fundamental_data', {
 // Insider trading activity
 export const insiderTrades = pgTable('insider_trades', {
   id: uuid('id').defaultRandom().primaryKey(),
-  symbol: text('symbol').notNull().default('TSLA'),
+  symbol: text('symbol').notNull().default('AMD'),
   insiderName: text('insider_name').notNull(),
   transactionType: text('transaction_type').notNull(), // 'buy' or 'sell'
   shares: integer('shares').notNull(),
@@ -53,7 +53,7 @@ export const insiderTrades = pgTable('insider_trades', {
   timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 
-// Elon Musk's tweets and sentiment analysis
+// AMD CEO and key personnel's social media sentiment analysis
 export const tweetSentiment = pgTable('tweet_sentiment', {
   id: uuid('id').defaultRandom().primaryKey(),
   tweetId: text('tweet_id').notNull(),
@@ -81,7 +81,7 @@ export const newsArticles = pgTable('news_articles', {
 // AI predictions and recommendations
 export const aiPredictions = pgTable('ai_predictions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  symbol: text('symbol').notNull().default('TSLA'),
+  symbol: text('symbol').notNull().default('AMD'),
   currentPrice: decimal('current_price', { precision: 10, scale: 2 }).notNull(),
   predictedPrice: decimal('predicted_price', { precision: 10, scale: 2 }).notNull(),
   predictionDays: integer('prediction_days').notNull().default(5),
@@ -97,7 +97,7 @@ export const aiPredictions = pgTable('ai_predictions', {
 // Market volatility and anomaly detection
 export const marketAnomalies = pgTable('market_anomalies', {
   id: uuid('id').defaultRandom().primaryKey(),
-  symbol: text('symbol').notNull().default('TSLA'),
+  symbol: text('symbol').notNull().default('AMD'),
   anomalyType: text('anomaly_type').notNull(), // 'volume_spike', 'price_gap', 'unusual_pattern'
   severity: text('severity').notNull(), // 'low', 'medium', 'high', 'critical'
   description: text('description').notNull(),
@@ -158,7 +158,7 @@ export type ApiLog = typeof apiLogs.$inferSelect;
 export type InsertApiLog = z.infer<typeof insertApiLogSchema>;
 
 // Combined dashboard data type
-export type TeslaDashboardData = {
+export type AmdDashboardData = {
   currentPrice: StockPrice;
   technicalIndicators: TechnicalIndicator;
   fundamentalData: FundamentalData;

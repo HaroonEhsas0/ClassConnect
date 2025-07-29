@@ -93,7 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
 
   // Dashboard data endpoint - main endpoint for the UI
-  app.get('/api/tesla/dashboard', async (req, res) => {
+  app.get('/api/amd/dashboard', async (req, res) => {
     try {
       const dashboardData = await teslaStorage.getDashboardData();
       res.json(dashboardData);
@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Real-time stock price
-  app.get('/api/tesla/price', async (req, res) => {
+  app.get('/api/amd/price', async (req, res) => {
     try {
       const price = await teslaStorage.getLatestStockPrice();
       if (!price) {
@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI predictions
-  app.get('/api/tesla/prediction', async (req, res) => {
+  app.get('/api/amd/prediction', async (req, res) => {
     try {
       const prediction = await teslaStorage.getLatestPrediction();
       if (!prediction) {
@@ -132,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Insider trades
-  app.get('/api/tesla/insider-trades', async (req, res) => {
+  app.get('/api/amd/insider-trades', async (req, res) => {
     try {
       const days = parseInt(req.query.days as string) || 30;
       const trades = await teslaStorage.getRecentInsiderTrades(days);
@@ -144,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Elon Musk tweets and sentiment
-  app.get('/api/tesla/tweets', async (req, res) => {
+  app.get('/api/amd/tweets', async (req, res) => {
     try {
       const hours = parseInt(req.query.hours as string) || 24;
       const tweets = await teslaStorage.getRecentTweets(hours);
@@ -156,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Tesla news
-  app.get('/api/tesla/news', async (req, res) => {
+  app.get('/api/amd/news', async (req, res) => {
     try {
       const hours = parseInt(req.query.hours as string) || 24;
       const news = await teslaStorage.getRecentNews(hours);
@@ -168,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Manual data refresh endpoint
-  app.post('/api/tesla/refresh', async (req, res) => {
+  app.post('/api/amd/refresh', async (req, res) => {
     try {
       // Start refresh in background
       ApiService.refreshAllData().catch(error => {
@@ -183,7 +183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Trading simulation endpoint (for demo purposes)
-  app.post('/api/tesla/trade', async (req, res) => {
+  app.post('/api/amd/trade', async (req, res) => {
     try {
       const tradeSchema = z.object({
         action: z.enum(['buy', 'sell']),

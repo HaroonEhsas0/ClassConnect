@@ -21,24 +21,24 @@ import { PriceChart } from '@/components/tesla/price-chart';
 import { TweetFeed } from '@/components/tesla/tweet-feed';
 import { NewsFeed } from '@/components/tesla/news-feed';
 import { InsiderTrades } from '@/components/tesla/insider-trades';
-import type { TeslaDashboardData } from '../../../shared/tesla-schema';
+import type { AmdDashboardData } from '../../../shared/tesla-schema';
 
-export default function TeslaDashboard() {
+export default function AmdDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: dashboardData, isLoading, error } = useQuery<TeslaDashboardData>({
-    queryKey: ['/api/tesla/dashboard'],
+  const { data: dashboardData, isLoading, error } = useQuery<AmdDashboardData>({
+    queryKey: ['/api/amd/dashboard'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   const refreshMutation = useMutation({
-    mutationFn: () => fetch('/api/tesla/refresh', { method: 'POST' }),
+    mutationFn: () => fetch('/api/amd/refresh', { method: 'POST' }),
     onSuccess: () => {
       setRefreshing(true);
       // Invalidate all queries after a short delay to allow server to update
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['/api/tesla'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/amd'] });
         setRefreshing(false);
       }, 2000);
     },
@@ -50,8 +50,8 @@ export default function TeslaDashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-20">
             <div className="animate-spin text-6xl mb-4">⚡</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Tesla Prediction System</h2>
-            <p className="text-gray-300">Loading market data...</p>
+            <h2 className="text-2xl font-bold text-white mb-2">AMD Prediction System</h2>
+            <p className="text-gray-300">Loading semiconductor market data...</p>
           </div>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function TeslaDashboard() {
           <Alert className="max-w-md mx-auto mt-20">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Failed to load Tesla data. Please try refreshing or contact support.
+              Failed to load AMD data. Please try refreshing or contact support.
             </AlertDescription>
           </Alert>
           <div className="text-center mt-6">
@@ -92,8 +92,8 @@ export default function TeslaDashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-20">
             <div className="animate-spin text-6xl mb-4">⚡</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Tesla Prediction System</h2>
-            <p className="text-gray-300">Loading Tesla stock data...</p>
+            <h2 className="text-2xl font-bold text-white mb-2">AMD Prediction System</h2>
+            <p className="text-gray-300">Loading AMD stock data...</p>
             <div className="mt-6">
               <Button
                 onClick={() => refreshMutation.mutate()}
@@ -148,9 +148,9 @@ export default function TeslaDashboard() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Tesla Prediction System
+              AMD Prediction System
             </h1>
-            <p className="text-gray-300 mt-2">AI-Powered TSLA Stock Analysis & Forecasting</p>
+            <p className="text-gray-300 mt-2">AI-Powered AMD Stock Analysis & Forecasting</p>
           </div>
           <Button
             onClick={() => refreshMutation.mutate()}
@@ -169,7 +169,7 @@ export default function TeslaDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="text-white flex items-center">
                 <DollarSign className="h-5 w-5 mr-2" />
-                TSLA Stock Price
+                AMD Stock Price
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -330,7 +330,7 @@ export default function TeslaDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm flex items-center">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                Elon Tweet Sentiment
+                Lisa Su Tweet Sentiment
               </CardTitle>
             </CardHeader>
             <CardContent>

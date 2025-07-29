@@ -5,7 +5,7 @@ export class CronService {
   private static jobs: Map<string, cron.ScheduledTask> = new Map();
 
   static start() {
-    console.log('🕒 Starting Tesla data CRON jobs...');
+    console.log('🕒 Starting AMD data CRON jobs...');
 
     // Update stock data every 30 minutes during market hours (9:30 AM - 4:00 PM ET, Mon-Fri)
     const stockDataJob = cron.schedule('*/30 9-16 * * 1-5', async () => {
@@ -30,21 +30,21 @@ export class CronService {
       }
     }, { scheduled: false, timezone: 'America/New_York' });
 
-    // Update Elon's tweets every 2 hours
+    // Update Lisa Su's tweets every 2 hours
     const tweetJob = cron.schedule('0 */2 * * *', async () => {
-      console.log('🔄 Updating Elon Musk tweets...');
+      console.log('🔄 Updating Lisa Su tweets...');
       try {
-        await ApiService.fetchElonTweets();
+        await ApiService.fetchLisaSuTweets();
       } catch (error) {
         console.error('Tweet update error:', error);
       }
     }, { scheduled: false });
 
-    // Update Tesla news every hour
+    // Update AMD news every hour
     const newsJob = cron.schedule('0 * * * *', async () => {
-      console.log('🔄 Updating Tesla news...');
+      console.log('🔄 Updating AMD news...');
       try {
-        await ApiService.fetchTeslaNews();
+        await ApiService.fetchAmdNews();
       } catch (error) {
         console.error('News update error:', error);
       }
@@ -98,7 +98,7 @@ export class CronService {
   }
 
   private static async initialDataLoad() {
-    console.log('🚀 Performing initial Tesla data load...');
+    console.log('🚀 Performing initial AMD data load...');
     try {
       // Load all data on startup
       await ApiService.refreshAllData();

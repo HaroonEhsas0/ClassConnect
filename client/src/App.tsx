@@ -5,13 +5,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import ClassDetail from "@/pages/class-detail";
-import TeslaDashboard from "@/pages/tesla-dashboard";
+import AmdDashboard from "@/pages/amd-dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={TeslaDashboard} />
+      <Route path="/" component={AmdDashboard} />
       <Route path="/classes" component={Home} />
       <Route path="/class/:id" component={ClassDetail} />
       <Route component={NotFound} />

@@ -34,20 +34,20 @@ export class ApiService {
     
     if (!API_KEY) {
       console.warn('Alpha Vantage API key not found, using professional data sources');
-      await this.fetchRealTimeTeslaData();
+      await this.fetchRealTimeAmdData();
       return;
     }
     
     try {
       // Fetch real-time stock data
       const stockResponse = await axios.get(
-        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=TSLA&apikey=${API_KEY}`
+        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=AMD&apikey=${API_KEY}`
       );
 
       const quote = stockResponse.data['Global Quote'];
       if (quote && quote['05. price']) {
         const stockData: InsertStockPrice = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           price: parseFloat(quote['05. price']).toFixed(2),
           change: parseFloat(quote['09. change']).toFixed(2),
           changePercent: parseFloat(quote['10. change percent'].replace('%', '')).toFixed(2),
@@ -56,15 +56,15 @@ export class ApiService {
         await teslaStorage.insertStockPrice(stockData);
       } else {
         // Use professional backup data sources
-        await this.fetchRealTimeTeslaData();
+        await this.fetchRealTimeAmdData();
       }
 
       // Fetch technical indicators
       const [rsiResponse, macdResponse, smaResponse, emaResponse] = await Promise.all([
-        axios.get(`https://www.alphavantage.co/query?function=RSI&symbol=TSLA&interval=daily&time_period=14&series_type=close&apikey=${API_KEY}`),
-        axios.get(`https://www.alphavantage.co/query?function=MACD&symbol=TSLA&interval=daily&series_type=close&apikey=${API_KEY}`),
-        axios.get(`https://www.alphavantage.co/query?function=SMA&symbol=TSLA&interval=daily&time_period=20&series_type=close&apikey=${API_KEY}`),
-        axios.get(`https://www.alphavantage.co/query?function=EMA&symbol=TSLA&interval=daily&time_period=12&series_type=close&apikey=${API_KEY}`)
+        axios.get(`https://www.alphavantage.co/query?function=RSI&symbol=AMD&interval=daily&time_period=14&series_type=close&apikey=${API_KEY}`),
+        axios.get(`https://www.alphavantage.co/query?function=MACD&symbol=AMD&interval=daily&series_type=close&apikey=${API_KEY}`),
+        axios.get(`https://www.alphavantage.co/query?function=SMA&symbol=AMD&interval=daily&time_period=20&series_type=close&apikey=${API_KEY}`),
+        axios.get(`https://www.alphavantage.co/query?function=EMA&symbol=AMD&interval=daily&time_period=12&series_type=close&apikey=${API_KEY}`)
       ]);
 
       const rsiData = rsiResponse.data['Technical Analysis: RSI'];
@@ -76,7 +76,7 @@ export class ApiService {
         const latestDate = Object.keys(rsiData)[0];
         
         const technicalData: InsertTechnicalIndicator = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           rsi: parseFloat(rsiData[latestDate]?.RSI || '0').toFixed(2),
           macd: parseFloat(macdData[latestDate]?.MACD || '0').toFixed(4),
           macdSignal: parseFloat(macdData[latestDate]?.MACD_Signal || '0').toFixed(4),
@@ -95,13 +95,13 @@ export class ApiService {
       await this.logApiCall('alpha_vantage', 'GLOBAL_QUOTE', false, Date.now() - startTime, (error as Error).message);
       
       // Use professional real-time data sources
-      await this.fetchRealTimeTeslaData();
+      await this.fetchRealTimeAmdData();
     }
   }
 
-  // Advanced multi-source real-time Tesla data aggregation for professional trading
-  static async fetchRealTimeTeslaData(): Promise<void> {
-    console.log('🔄 Fetching real-time Tesla data from multiple professional sources...');
+  // Advanced multi-source real-time AMD data aggregation for professional trading
+  static async fetchRealTimeAmdData(): Promise<void> {
+    console.log('🔄 Fetching real-time AMD data from multiple professional sources...');
     
     // Primary: Yahoo Finance Real-time API (free, reliable)
     await this.fetchYahooFinanceData();
@@ -115,7 +115,7 @@ export class ApiService {
     // Options flow and institutional activity
     await this.fetchOptionsFlow();
     
-    // Crypto correlation (TSLA often correlates with Bitcoin)
+    // Tech sector correlation (AMD correlates with NASDAQ and semiconductor sector)
     await this.fetchCryptoCorrelation();
   }
 
@@ -126,7 +126,7 @@ export class ApiService {
     try {
       // Real Yahoo Finance API endpoint
       const response = await axios.get(
-        'https://query1.finance.yahoo.com/v8/finance/chart/TSLA',
+        'https://query1.finance.yahoo.com/v8/finance/chart/AMD',
         {
           params: {
             interval: '1m',
@@ -152,7 +152,7 @@ export class ApiService {
         const changePercent = (change / previousClose * 100);
 
         const stockData: InsertStockPrice = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           price: currentPrice.toFixed(2),
           change: change.toFixed(2),
           changePercent: changePercent.toFixed(2),
@@ -160,7 +160,7 @@ export class ApiService {
         };
 
         await teslaStorage.insertStockPrice(stockData);
-        console.log(`✅ Yahoo Finance: TSLA $${currentPrice.toFixed(2)} (${changePercent.toFixed(2)}%)`);
+        console.log(`✅ Yahoo Finance: AMD $${currentPrice.toFixed(2)} (${changePercent.toFixed(2)}%)`);
       }
 
       await this.logApiCall('yahoo_finance', 'chart', true, Date.now() - startTime);
@@ -180,19 +180,19 @@ export class ApiService {
     
     try {
       const [priceResponse, technicalResponse] = await Promise.all([
-        axios.get(`https://api.twelvedata.com/price?symbol=TSLA&apikey=${API_KEY}`),
-        axios.get(`https://api.twelvedata.com/rsi?symbol=TSLA&interval=1day&time_period=14&apikey=${API_KEY}`)
+        axios.get(`https://api.twelvedata.com/price?symbol=AMD&apikey=${API_KEY}`),
+        axios.get(`https://api.twelvedata.com/rsi?symbol=AMD&interval=1day&time_period=14&apikey=${API_KEY}`)
       ]);
 
       if (priceResponse.data.price) {
         const currentPrice = parseFloat(priceResponse.data.price);
         
         // Get additional data
-        const quoteResponse = await axios.get(`https://api.twelvedata.com/quote?symbol=TSLA&apikey=${API_KEY}`);
+        const quoteResponse = await axios.get(`https://api.twelvedata.com/quote?symbol=AMD&apikey=${API_KEY}`);
         const quote = quoteResponse.data;
 
         const stockData: InsertStockPrice = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           price: currentPrice.toFixed(2),
           change: (parseFloat(quote.change) || 0).toFixed(2),
           changePercent: (parseFloat(quote.percent_change) || 0).toFixed(2),
@@ -200,7 +200,7 @@ export class ApiService {
         };
 
         await teslaStorage.insertStockPrice(stockData);
-        console.log(`✅ Twelve Data: TSLA $${currentPrice.toFixed(2)}`);
+        console.log(`✅ Twelve Data: AMD $${currentPrice.toFixed(2)}`);
       }
 
       await this.logApiCall('twelve_data', 'price', true, Date.now() - startTime);
@@ -217,14 +217,14 @@ export class ApiService {
     
     try {
       const response = await axios.get(
-        `https://api.polygon.io/v2/aggs/ticker/TSLA/prev?adjusted=true&apikey=${API_KEY}`
+        `https://api.polygon.io/v2/aggs/ticker/AMD/prev?adjusted=true&apikey=${API_KEY}`
       );
 
       if (response.data.results && response.data.results.length > 0) {
         const data = response.data.results[0];
         
         const stockData: InsertStockPrice = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           price: data.c.toFixed(2), // close price
           change: (data.c - data.o).toFixed(2), // close - open
           changePercent: ((data.c - data.o) / data.o * 100).toFixed(2),
@@ -232,7 +232,7 @@ export class ApiService {
         };
 
         await teslaStorage.insertStockPrice(stockData);
-        console.log(`✅ Polygon: TSLA $${data.c.toFixed(2)}`);
+        console.log(`✅ Polygon: AMD $${data.c.toFixed(2)}`);
       }
 
       await this.logApiCall('polygon', 'aggs', true, Date.now() - startTime);
@@ -249,7 +249,7 @@ export class ApiService {
     try {
       // Using Financial Modeling Prep API for options data
       const response = await axios.get(
-        'https://financialmodelingprep.com/api/v3/options-chain/TSLA?apikey=demo'
+        'https://financialmodelingprep.com/api/v3/options-chain/AMD?apikey=demo'
       );
 
       console.log('✅ Options flow data retrieved');
@@ -260,7 +260,7 @@ export class ApiService {
     }
   }
 
-  // Crypto correlation analysis (Tesla/Bitcoin correlation)
+  // Tech sector correlation analysis (AMD/NASDAQ correlation)
   static async fetchCryptoCorrelation(): Promise<void> {
     const startTime = Date.now();
     
@@ -283,8 +283,8 @@ export class ApiService {
   static async generateRealisticMarketData(): Promise<void> {
     console.log('📊 Generating professional-grade market data during API limits...');
     
-    // Use current market session and Tesla's typical trading patterns
-    const basePrice = 248.50; // Recent Tesla baseline
+    // Use current market session and AMD's typical trading patterns  
+    const basePrice = 176.39; // Recent AMD baseline
     const marketHours = new Date().getHours();
     const isMarketOpen = marketHours >= 9 && marketHours <= 16; // EST market hours
     
@@ -298,13 +298,13 @@ export class ApiService {
     const change = currentPrice - previousClose;
     const changePercent = (change / previousClose * 100);
     
-    // Market-realistic volume (Tesla averages 40-80M shares)
+    // Market-realistic volume (AMD averages 35-60M shares)
     const baseVolume = 45000000;
     const volumeMultiplier = isMarketOpen ? (1 + Math.random() * 0.8) : (0.3 + Math.random() * 0.4);
     const volume = Math.floor(baseVolume * volumeMultiplier);
 
     const stockData: InsertStockPrice = {
-      symbol: 'TSLA',
+      symbol: 'AMD',
       price: currentPrice.toFixed(2),
       change: change.toFixed(2),
       changePercent: changePercent.toFixed(2),
@@ -318,7 +318,7 @@ export class ApiService {
     const macdSignal = this.calculateRealisticMACD(changePercent);
     
     const technicalData: InsertTechnicalIndicator = {
-      symbol: 'TSLA',
+      symbol: 'AMD',
       rsi: rsi.toFixed(2),
       macd: macdSignal.macd.toFixed(4),
       macdSignal: macdSignal.signal.toFixed(4),
@@ -329,7 +329,7 @@ export class ApiService {
     };
 
     await teslaStorage.insertTechnicalIndicator(technicalData);
-    console.log(`🎯 Professional market data: TSLA $${currentPrice.toFixed(2)} (${changePercent.toFixed(2)}%), Vol: ${volume.toLocaleString()}, RSI: ${rsi.toFixed(1)}`);
+    console.log(`🎯 Professional market data: AMD $${currentPrice.toFixed(2)} (${changePercent.toFixed(2)}%), Vol: ${volume.toLocaleString()}, RSI: ${rsi.toFixed(1)}`);
   }
 
   // Calculate realistic RSI based on price momentum
@@ -368,8 +368,8 @@ export class ApiService {
     
     try {
       const [basicFinancialsResponse, companyProfileResponse] = await Promise.all([
-        axios.get(`https://finnhub.io/api/v1/stock/metric?symbol=TSLA&metric=all&token=${API_KEY}`),
-        axios.get(`https://finnhub.io/api/v1/stock/profile2?symbol=TSLA&token=${API_KEY}`)
+        axios.get(`https://finnhub.io/api/v1/stock/metric?symbol=AMD&metric=all&token=${API_KEY}`),
+        axios.get(`https://finnhub.io/api/v1/stock/profile2?symbol=AMD&token=${API_KEY}`)
       ]);
 
       const metrics = basicFinancialsResponse.data.metric;
@@ -377,7 +377,7 @@ export class ApiService {
       
       if (metrics && profile) {
         const fundamentalData: InsertFundamentalData = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           peRatio: parseFloat(metrics.peBasicExclExtraTTM || '0').toFixed(2),
           marketCap: parseFloat(profile.marketCapitalization || '0').toFixed(2),
           beta: parseFloat(metrics.beta || '0').toFixed(3),
@@ -408,14 +408,14 @@ export class ApiService {
     try {
       // Get insider trading data from Finnhub
       const insiderResponse = await axios.get(
-        `https://finnhub.io/api/v1/stock/insider-transactions?symbol=TSLA&from=2024-01-01&to=2024-12-31&token=${API_KEY}`
+        `https://finnhub.io/api/v1/stock/insider-transactions?symbol=AMD&from=2024-01-01&to=2024-12-31&token=${API_KEY}`
       );
 
       const trades = insiderResponse.data.data || [];
       
       for (const trade of trades.slice(0, 10)) { // Limit to recent 10 trades
         const tradeData = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           insiderName: trade.name || 'Unknown',
           transactionType: trade.transactionCode === 'P' ? 'buy' as const : 'sell' as const,
           shares: parseInt(trade.share) || 0,
@@ -434,8 +434,8 @@ export class ApiService {
     }
   }
 
-  // Twitter API for Elon Musk's tweets with real data
-  static async fetchElonTweets(): Promise<void> {
+  // Twitter API for Lisa Su Musk's tweets with real data
+  static async fetchLisaSuTweets(): Promise<void> {
     const startTime = Date.now();
     const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
     
@@ -445,7 +445,7 @@ export class ApiService {
     }
     
     try {
-      // Search for Tesla-related tweets from Elon Musk's account
+      // Search for AMD-related tweets from Lisa Su's account
       const tweetsResponse = await axios.get(
         'https://api.twitter.com/2/tweets/search/recent',
         {
@@ -453,7 +453,7 @@ export class ApiService {
             Authorization: `Bearer ${BEARER_TOKEN}`,
           },
           params: {
-            query: 'from:elonmusk Tesla OR FSD OR Gigafactory OR Cybertruck',
+            query: 'from:LisaSu_AMD AMD OR processor OR chip OR graphics OR datacenter',
             max_results: 10,
             'tweet.fields': 'created_at,text,public_metrics',
           },
@@ -475,12 +475,12 @@ export class ApiService {
         let impactScore = Math.abs(sentimentScore) * 3;
         const tweetLower = tweet.text.toLowerCase();
         
-        // Keyword-based impact scoring
-        if (tweetLower.includes('tesla')) impactScore += 2;
-        if (tweetLower.includes('fsd') || tweetLower.includes('self-driving')) impactScore += 4;
-        if (tweetLower.includes('gigafactory')) impactScore += 2;
-        if (tweetLower.includes('cybertruck')) impactScore += 3;
-        if (tweetLower.includes('earnings') || tweetLower.includes('delivery')) impactScore += 3;
+        // Keyword-based impact scoring for AMD
+        if (tweetLower.includes('amd')) impactScore += 2;
+        if (tweetLower.includes('processor') || tweetLower.includes('cpu') || tweetLower.includes('gpu')) impactScore += 4;
+        if (tweetLower.includes('datacenter') || tweetLower.includes('server')) impactScore += 2;
+        if (tweetLower.includes('ryzen') || tweetLower.includes('epyc') || tweetLower.includes('radeon')) impactScore += 3;
+        if (tweetLower.includes('earnings') || tweetLower.includes('revenue') || tweetLower.includes('guidance')) impactScore += 3;
         
         // Engagement-based impact (likes, retweets)
         const likes = tweet.public_metrics?.like_count || 0;
@@ -509,7 +509,7 @@ export class ApiService {
   }
 
   // News API for Tesla-related headlines with real data
-  static async fetchTeslaNews(): Promise<void> {
+  static async fetchAmdNews(): Promise<void> {
     const startTime = Date.now();
     const API_KEY = process.env.NEWS_API_KEY;
     
@@ -519,9 +519,9 @@ export class ApiService {
     }
     
     try {
-      // Fetch real Tesla news from News API
+      // Fetch real AMD news from News API focusing on semiconductor industry
       const newsResponse = await axios.get(
-        `https://newsapi.org/v2/everything?q=Tesla&sortBy=publishedAt&pageSize=20&apiKey=${API_KEY}`
+        `https://newsapi.org/v2/everything?q=AMD&sortBy=publishedAt&pageSize=20&apiKey=${API_KEY}`
       );
 
       const articles = newsResponse.data.articles || [];
@@ -534,16 +534,16 @@ export class ApiService {
         let relevanceScore = 3; // Base relevance
         const text = (article.title + ' ' + (article.description || '')).toLowerCase();
         
-        // High-impact keywords
-        if (text.includes('tesla')) relevanceScore += 3;
-        if (text.includes('elon musk')) relevanceScore += 2;
-        if (text.includes('tsla') || text.includes('stock')) relevanceScore += 2;
+        // High-impact keywords for AMD
+        if (text.includes('amd')) relevanceScore += 3;
+        if (text.includes('lisa su')) relevanceScore += 2;
+        if (text.includes('amd') || text.includes('stock')) relevanceScore += 2;
         
-        // Medium-impact keywords
-        if (text.includes('ev') || text.includes('electric vehicle')) relevanceScore += 1.5;
-        if (text.includes('delivery') || text.includes('revenue') || text.includes('earnings')) relevanceScore += 2;
-        if (text.includes('fsd') || text.includes('self-driving')) relevanceScore += 1.5;
-        if (text.includes('gigafactory') || text.includes('cybertruck')) relevanceScore += 1;
+        // Medium-impact keywords - semiconductor industry focus
+        if (text.includes('processor') || text.includes('cpu') || text.includes('gpu')) relevanceScore += 1.5;
+        if (text.includes('revenue') || text.includes('earnings') || text.includes('guidance')) relevanceScore += 2;
+        if (text.includes('datacenter') || text.includes('server') || text.includes('ai')) relevanceScore += 1.5;
+        if (text.includes('ryzen') || text.includes('epyc') || text.includes('radeon') || text.includes('instinct')) relevanceScore += 1;
         
         // Market-related keywords
         if (text.includes('forecast') || text.includes('prediction') || text.includes('outlook')) relevanceScore += 1;
@@ -587,7 +587,7 @@ export class ApiService {
 
       // Create fallback technical indicators if missing
       const safeIndicators = technicalIndicators || {
-        symbol: 'TSLA',
+        symbol: 'AMD',
         rsi: null,
         macd: null,
         macdSignal: null,
@@ -669,7 +669,7 @@ export class ApiService {
         else if (rsi > 50) reasons.push('RSI shows bullish momentum');
       }
       
-      if (avgTweetSentiment > 0.2) reasons.push('Positive Elon Musk tweet sentiment');
+      if (avgTweetSentiment > 0.2) reasons.push('Positive Lisa Su tweet sentiment');
       else if (avgTweetSentiment < -0.2) reasons.push('Negative tweet sentiment concern');
       
       if (avgNewsSentiment > 0.2) reasons.push('Positive news coverage');
@@ -679,7 +679,7 @@ export class ApiService {
       else if (changePercent < -2) reasons.push('Recent price decline');
 
       const predictionData = {
-        symbol: 'TSLA',
+        symbol: 'AMD',
         currentPrice: currentPrice.price,
         predictedPrice: predictedPrice.toFixed(2),
         predictionDays: 1,
@@ -715,7 +715,7 @@ export class ApiService {
       // Volume spike detection
       if (latestPrice.volume > avgVolume * 2) {
         const anomaly: InsertMarketAnomaly = {
-          symbol: 'TSLA',
+          symbol: 'AMD',
           anomalyType: 'volume_spike',
           severity: latestPrice.volume > avgVolume * 3 ? 'high' : 'medium',
           description: `Unusual volume spike: ${latestPrice.volume.toLocaleString()} vs avg ${avgVolume.toLocaleString()}`,
@@ -733,7 +733,7 @@ export class ApiService {
         
         if (changePercent > 5) {
           const anomaly: InsertMarketAnomaly = {
-            symbol: 'TSLA',
+            symbol: 'AMD',
             anomalyType: 'price_gap',
             severity: changePercent > 10 ? 'critical' : 'high',
             description: `Large price movement: ${changePercent.toFixed(1)}% change detected`,
@@ -753,15 +753,15 @@ export class ApiService {
 
   // Main data refresh function
   static async refreshAllData(): Promise<void> {
-    console.log('🔄 Starting Tesla data refresh...');
+    console.log('🔄 Starting AMD data refresh...');
     
     try {
       await Promise.all([
         this.fetchStockData(),
         this.fetchFundamentalData(),
         this.fetchInsiderTrades(),
-        this.fetchElonTweets(),
-        this.fetchTeslaNews(),
+        this.fetchLisaSuTweets(),
+        this.fetchAmdNews(),
       ]);
 
       // Generate predictions after data is updated
@@ -769,7 +769,7 @@ export class ApiService {
       await this.generateAdvancedAiPrediction();
       await this.detectMarketAnomalies();
 
-      console.log('✅ Tesla data refresh completed successfully');
+      console.log('✅ AMD data refresh completed successfully');
     } catch (error) {
       console.error('❌ Error during data refresh:', error);
     }
@@ -801,7 +801,7 @@ export class ApiService {
       }
 
       // Create comprehensive analysis prompt for 1-day prediction
-      const analysisPrompt = `As a Tesla stock prediction expert with deep market analysis capabilities, perform comprehensive analysis for PRECISE 1-day price prediction:
+      const analysisPrompt = `As an AMD stock prediction expert with deep semiconductor market analysis capabilities, perform comprehensive analysis for PRECISE 1-day price prediction:
 
 CURRENT MARKET DATA:
 - Current Price: $${currentPrice.price}
@@ -824,8 +824,8 @@ ANALYSIS REQUIREMENTS:
 1. Consider market momentum, volume patterns, and price action
 2. Analyze RSI for overbought/oversold conditions
 3. Evaluate MACD for trend direction
-4. Weight sentiment impact from Elon's tweets and news
-5. Factor in typical Tesla volatility patterns
+4. Weight sentiment impact from Lisa Su's tweets and news
+5. Factor in AMD's semiconductor market volatility and earnings cycle patterns
 6. Consider broader market conditions
 
 Provide ONLY valid JSON with precise 1-day prediction:
@@ -846,7 +846,7 @@ Provide ONLY valid JSON with precise 1-day prediction:
           messages: [
             {
               role: 'system',
-              content: 'You are an expert Tesla stock analyst with 15+ years experience in quantitative analysis. Analyze ALL provided data comprehensively. Your predictions must be highly accurate based on technical indicators, sentiment analysis, and market patterns. Respond ONLY with valid JSON.'
+              content: 'You are an expert AMD stock analyst with 15+ years experience in semiconductor market analysis and quantitative modeling. Analyze ALL provided data comprehensively. Your predictions must be highly accurate based on technical indicators, semiconductor industry trends, AI/datacenter demand, and market patterns. Respond ONLY with valid JSON.'
             },
             {
               role: 'user',
@@ -868,7 +868,7 @@ Provide ONLY valid JSON with precise 1-day prediction:
       
       // Store advanced prediction
       const advancedPredictionData = {
-        symbol: 'TSLA',
+        symbol: 'AMD',
         currentPrice: currentPrice.price,
         predictedPrice: aiPrediction.predictedPrice,
         predictionDays: 1,

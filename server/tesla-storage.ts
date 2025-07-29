@@ -12,10 +12,10 @@ import type {
   AiPrediction, InsertAiPrediction,
   MarketAnomaly, InsertMarketAnomaly,
   ApiLog, InsertApiLog,
-  TeslaDashboardData
+  AmdDashboardData
 } from '../shared/tesla-schema';
 
-export interface ITeslaStorage {
+export interface IAmdStorage {
   // Stock price operations
   insertStockPrice(data: InsertStockPrice): Promise<StockPrice>;
   getLatestStockPrice(): Promise<StockPrice | null>;
@@ -55,10 +55,10 @@ export interface ITeslaStorage {
   getApiStats(hours: number): Promise<{ provider: string; success: number; failure: number; avgResponseTime: number }[]>;
 
   // Dashboard data aggregation
-  getDashboardData(): Promise<TeslaDashboardData>;
+  getDashboardData(): Promise<AmdDashboardData>;
 }
 
-class TeslaMemStorage implements ITeslaStorage {
+class AmdMemStorage implements IAmdStorage {
   private stockPrices: StockPrice[] = [];
   private technicalIndicators: TechnicalIndicator[] = [];
   private fundamentalData: FundamentalData[] = [];
@@ -252,7 +252,7 @@ class TeslaMemStorage implements ITeslaStorage {
     }));
   }
 
-  async getDashboardData(): Promise<TeslaDashboardData> {
+  async getDashboardData(): Promise<AmdDashboardData> {
     const currentPrice = await this.getLatestStockPrice();
     const technicalIndicators = await this.getLatestTechnicalIndicators();
     const fundamentalData = await this.getLatestFundamentalData();
@@ -276,7 +276,7 @@ class TeslaMemStorage implements ITeslaStorage {
 }
 
 // Database storage implementation (when using PostgreSQL)
-class TeslaDatabaseStorage implements ITeslaStorage {
+class AmdDatabaseStorage implements IAmdStorage {
   private db: ReturnType<typeof drizzle>;
 
   constructor() {
@@ -458,7 +458,7 @@ class TeslaDatabaseStorage implements ITeslaStorage {
     }));
   }
 
-  async getDashboardData(): Promise<TeslaDashboardData> {
+  async getDashboardData(): Promise<AmdDashboardData> {
     const [
       currentPrice,
       technicalIndicators,
@@ -493,6 +493,6 @@ class TeslaDatabaseStorage implements ITeslaStorage {
 }
 
 // Export the storage instance
-export const teslaStorage: ITeslaStorage = process.env.DATABASE_URL 
-  ? new TeslaDatabaseStorage()
-  : new TeslaMemStorage();
+export const teslaStorage: IAmdStorage = process.env.DATABASE_URL 
+  ? new AmdDatabaseStorage()
+  : new AmdMemStorage();

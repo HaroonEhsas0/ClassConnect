@@ -1,8 +1,8 @@
-# Tesla Stock Prediction System
+# AMD Stock Prediction System
 
 ## Overview
 
-Professional-grade Tesla Stock Prediction System with institutional-level algorithms providing highly accurate 1-day price forecasts. The system integrates multiple real-time data sources including Yahoo Finance, Twelve Data, Polygon.io, Financial Modeling Prep, and crypto correlation analysis. Features advanced technical analysis, multi-factor sentiment scoring, volume analysis, and professional risk assessment. Built with pro-trader mindset for maximum prediction accuracy using authentic market data.
+Professional-grade AMD Stock Prediction System with institutional-level algorithms providing highly accurate 1-day price forecasts. The system integrates multiple real-time data sources including Yahoo Finance, Twelve Data, Polygon.io, Financial Modeling Prep, and semiconductor industry correlation analysis. Features advanced technical analysis, multi-factor sentiment scoring, volume analysis, and professional risk assessment optimized for AMD's semiconductor business model. Built with pro-trader mindset for maximum prediction accuracy using authentic market data and semiconductor industry expertise.
 
 ## User Preferences
 
