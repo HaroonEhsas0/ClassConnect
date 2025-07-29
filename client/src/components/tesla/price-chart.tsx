@@ -6,7 +6,7 @@ import type { StockPrice } from '../../../../shared/tesla-schema';
 
 export function PriceChart() {
   const { data: priceHistory, isLoading } = useQuery<StockPrice[]>({
-    queryKey: ['/api/tesla/price/history', { hours: 24 }],
+    queryKey: ['/api/tesla/price/history', 24],
     refetchInterval: 60000, // Refresh every minute
   });
 
