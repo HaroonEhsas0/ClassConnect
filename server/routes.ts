@@ -159,7 +159,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Start CRON jobs for Tesla data updates
+  // AMD price history endpoint
+  app.get('/api/amd/price/history/:hours', async (req, res) => {
+    try {
+      const hours = parseInt(req.params.hours) || 24;
+      const history = await teslaStorage.getStockPriceHistory(hours);
+      res.json(history);
+    } catch (error) {
+      console.error('AMD price history error:', error);
+      res.status(500).json({ error: 'Failed to fetch AMD price history' });
+    }
+  });
+
+  // Tesla endpoints for legacy chart components - using AMD data
+  app.get('/api/tesla/price/history/:hours', async (req, res) => {
+    try {
+      const hours = parseInt(req.params.hours) || 24;
+      const history = await teslaStorage.getStockPriceHistory(hours);
+      res.json(history);
+    } catch (error) {
+      console.error('Tesla price history error:', error);
+      res.status(500).json({ error: 'Failed to fetch price history' });
+    }
+  });
+
+  app.get('/api/tesla/price/history', async (req, res) => {
+    try {
+      const hours = parseInt(req.query.hours as string) || 24;
+      const history = await teslaStorage.getStockPriceHistory(hours);
+      res.json(history);
+    } catch (error) {
+      console.error('Tesla price history error:', error);
+      res.status(500).json({ error: 'Failed to fetch price history' });
+    }
+  });
+
+  // Start CRON jobs for AMD data updates  
   CronService.start();
 
   const httpServer = createServer(app);
