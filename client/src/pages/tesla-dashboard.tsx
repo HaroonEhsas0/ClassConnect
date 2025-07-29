@@ -236,22 +236,30 @@ export default function TeslaDashboard() {
               <CardTitle className="text-white text-sm">Technical Indicators</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">RSI:</span>
-                <span className="text-white">{technicalIndicators.rsi}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">MACD:</span>
-                <span className="text-white">{technicalIndicators.macd}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">SMA 20:</span>
-                <span className="text-white">${parseFloat(technicalIndicators.sma20!).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">SMA 50:</span>
-                <span className="text-white">${parseFloat(technicalIndicators.sma50!).toFixed(2)}</span>
-              </div>
+              {technicalIndicators ? (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">RSI:</span>
+                    <span className="text-white">{technicalIndicators.rsi || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">MACD:</span>
+                    <span className="text-white">{technicalIndicators.macd || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">SMA 20:</span>
+                    <span className="text-white">{technicalIndicators.sma20 ? `$${parseFloat(technicalIndicators.sma20).toFixed(2)}` : 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">SMA 50:</span>
+                    <span className="text-white">{technicalIndicators.sma50 ? `$${parseFloat(technicalIndicators.sma50).toFixed(2)}` : 'N/A'}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="animate-pulse text-gray-400 text-sm">Loading indicators...</div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
