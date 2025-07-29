@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { teslaStorage } from './tesla-storage';
+import PredictionCache from './prediction-cache';
 import type { InsertTechnicalIndicator, InsertNewsArticle, InsertMarketAnomaly, InsertStockPrice, InsertFundamentalData } from '@shared/tesla-schema';
 import * as sentiment from 'sentiment';
 
@@ -21,9 +22,17 @@ export class ApiService {
     }
   }
 
-  // Enhanced Real-Time AI Prediction Engine
+  // Enhanced Real-Time AI Prediction Engine with Stable Caching
   static async generateAiPrediction(): Promise<void> {
     const startTime = Date.now();
+    const cache = PredictionCache.getInstance();
+    
+    // Check for cached stable prediction first
+    const cachedPrediction = cache.getCachedPrediction('AMD');
+    if (cachedPrediction) {
+      console.log('📋 Using stable cached prediction to prevent fluctuations');
+      return;
+    }
     
     try {
       const [currentPrice, technicalIndicators, recentNews, priceHistory, fundamentalData] = await Promise.all([
@@ -236,9 +245,20 @@ export class ApiService {
       // Enhanced scoring with proper balance (scores can now be negative for strong SELL signals)
       score = Math.max(-30, Math.min(100, score));
       
-      // Calculate predicted price based on score with proper scaling
+      // Calculate predicted price based on comprehensive analysis (can predict downward movements)
       const priceVariation = score / 100; // Convert to percentage (-30 to 100)
-      const predictedPrice = currentPriceNum * (1 + priceVariation * 0.015); // Scale variation
+      // Enhanced scaling to allow proper downward predictions
+      let predictedPrice;
+      if (score < 0) {
+        // Strong bearish prediction - can predict significant drops
+        predictedPrice = currentPriceNum * (1 + priceVariation * 0.025); // Larger variation for bearish signals
+      } else if (score < 40) {
+        // Mild bearish to neutral - small downward prediction
+        predictedPrice = currentPriceNum * (1 + (score - 50) / 100 * 0.02);
+      } else {
+        // Bullish prediction
+        predictedPrice = currentPriceNum * (1 + priceVariation * 0.018);
+      }
       
       // Determine recommendation and risk level based on enhanced scoring
       let recommendation: string;
@@ -274,8 +294,8 @@ export class ApiService {
         currentPrice: currentPrice.price,
         predictedPrice: predictedPrice.toFixed(2),
         predictionDays: 1,
-        confidence: Math.max(60, Math.min(95, 70 + Math.abs(score - 50))).toFixed(0),
-        aiRating: Math.round(score),
+        confidence: Math.max(60, Math.min(95, 70 + Math.abs(score))).toFixed(0),
+        aiRating: Math.max(1, Math.min(100, Math.round(score + 50))), // Normalize to 1-100 scale
         recommendation,
         riskLevel,
         reasoning: reasons.length > 0 ? reasons.join('. ') + '. Real-time analysis based on current market conditions.' : 'Real-time prediction based on technical analysis and market momentum',
@@ -285,7 +305,10 @@ export class ApiService {
       await teslaStorage.insertAiPrediction(predictionData);
       await this.logApiCall('ai_engine', 'enhanced_prediction', true, Date.now() - startTime);
       
-      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} (${score}% confidence)`);
+      // Cache the stable prediction for 30 minutes
+      cache.setCachedPrediction('AMD', predictionData);
+      
+      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} (Score: ${Math.round(score + 50)}/100)`);
       
     } catch (error) {
       await this.logApiCall('ai_engine', 'enhanced_prediction', false, Date.now() - startTime, (error as Error).message);

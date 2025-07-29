@@ -300,7 +300,11 @@ class AmdMemStorage implements IAmdStorage {
     const stockPrice: StockPrice = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      symbol: data.symbol || 'AMD',
+      price: data.price,
+      change: data.change,
+      changePercent: data.changePercent,
+      volume: data.volume,
     };
     this.stockPrices.push(stockPrice);
     return stockPrice;
@@ -344,7 +348,13 @@ class AmdMemStorage implements IAmdStorage {
     const fundamental: FundamentalData = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      symbol: data.symbol || 'AMD',
+      peRatio: data.peRatio || null,
+      marketCap: data.marketCap || null,
+      beta: data.beta || null,
+      eps: data.eps || null,
+      revenue: data.revenue || null,
+      earningsDate: data.earningsDate || null,
     };
     this.fundamentalData.push(fundamental);
     return fundamental;
@@ -383,7 +393,13 @@ class AmdMemStorage implements IAmdStorage {
     const article: NewsArticle = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      headline: data.headline,
+      content: data.content || null,
+      source: data.source,
+      url: data.url || null,
+      sentimentScore: data.sentimentScore || null,
+      relevanceScore: data.relevanceScore || null,
+      publishedAt: data.publishedAt,
     };
     this.newsArticles.push(article);
     return article;
@@ -400,7 +416,16 @@ class AmdMemStorage implements IAmdStorage {
     const prediction: AiPrediction = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      symbol: data.symbol || 'AMD',
+      currentPrice: data.currentPrice,
+      predictedPrice: data.predictedPrice,
+      predictionDays: data.predictionDays || 1,
+      confidence: data.confidence,
+      aiRating: data.aiRating,
+      recommendation: data.recommendation,
+      riskLevel: data.riskLevel,
+      reasoning: data.reasoning,
+      modelUsed: data.modelUsed,
     };
     this.aiPredictions.push(prediction);
     return prediction;
@@ -414,7 +439,12 @@ class AmdMemStorage implements IAmdStorage {
     const anomaly: MarketAnomaly = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      symbol: data.symbol || 'AMD',
+      anomalyType: data.anomalyType,
+      severity: data.severity,
+      description: data.description,
+      detectedValue: data.detectedValue || null,
+      normalRange: data.normalRange,
     };
     this.marketAnomalies.push(anomaly);
     return anomaly;
@@ -431,7 +461,12 @@ class AmdMemStorage implements IAmdStorage {
     const log: ApiLog = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      provider: data.provider,
+      endpoint: data.endpoint,
+      success: data.success,
+      responseTime: data.responseTime || null,
+      errorMessage: data.errorMessage || null,
+      rateLimited: data.rateLimited || null,
     };
     this.apiLogs.push(log);
     return log;
