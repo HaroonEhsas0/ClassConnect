@@ -6,7 +6,7 @@ import type {
   InsertTechnicalIndicator,
   InsertFundamentalData,
   InsiderTrade,
-  InsertTweetSentiment,
+
   InsertNewsArticle,
   InsertMarketAnomaly,
   InsertApiLog
@@ -434,79 +434,7 @@ export class ApiService {
     }
   }
 
-  // Twitter API for Lisa Su Musk's tweets with real data
-  static async fetchLisaSuTweets(): Promise<void> {
-    const startTime = Date.now();
-    const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN;
-    
-    if (!BEARER_TOKEN) {
-      console.warn('Twitter Bearer Token not found, skipping tweets fetch');
-      return;
-    }
-    
-    try {
-      // Search for AMD-related tweets from Lisa Su's account
-      const tweetsResponse = await axios.get(
-        'https://api.twitter.com/2/tweets/search/recent',
-        {
-          headers: {
-            Authorization: `Bearer ${BEARER_TOKEN}`,
-          },
-          params: {
-            query: 'from:LisaSu_AMD AMD OR processor OR chip OR graphics OR datacenter',
-            max_results: 10,
-            'tweet.fields': 'created_at,text,public_metrics',
-          },
-        }
-      );
 
-      const tweets = tweetsResponse.data.data || [];
-      
-      for (const tweet of tweets) {
-        const sentimentResult = sentiment.analyze(tweet.text);
-        const sentimentScore = sentimentResult.score / Math.max(1, Math.abs(sentimentResult.score)) * (sentimentResult.score > 0 ? 1 : -1);
-        
-        let sentimentLabel: 'positive' | 'negative' | 'neutral';
-        if (sentimentScore > 0.1) sentimentLabel = 'positive';
-        else if (sentimentScore < -0.1) sentimentLabel = 'negative';
-        else sentimentLabel = 'neutral';
-
-        // Enhanced impact score calculation
-        let impactScore = Math.abs(sentimentScore) * 3;
-        const tweetLower = tweet.text.toLowerCase();
-        
-        // Keyword-based impact scoring for AMD
-        if (tweetLower.includes('amd')) impactScore += 2;
-        if (tweetLower.includes('processor') || tweetLower.includes('cpu') || tweetLower.includes('gpu')) impactScore += 4;
-        if (tweetLower.includes('datacenter') || tweetLower.includes('server')) impactScore += 2;
-        if (tweetLower.includes('ryzen') || tweetLower.includes('epyc') || tweetLower.includes('radeon')) impactScore += 3;
-        if (tweetLower.includes('earnings') || tweetLower.includes('revenue') || tweetLower.includes('guidance')) impactScore += 3;
-        
-        // Engagement-based impact (likes, retweets)
-        const likes = tweet.public_metrics?.like_count || 0;
-        const retweets = tweet.public_metrics?.retweet_count || 0;
-        impactScore += Math.min(3, (likes + retweets) / 10000);
-        
-        impactScore = Math.min(10, impactScore);
-
-        const tweetSentimentData: InsertTweetSentiment = {
-          tweetId: tweet.id,
-          tweetText: tweet.text,
-          sentimentScore: sentimentScore.toFixed(3),
-          sentimentLabel,
-          impactScore: impactScore.toFixed(2),
-          tweetDate: new Date(tweet.created_at),
-        };
-
-        await teslaStorage.insertTweetSentiment(tweetSentimentData);
-      }
-
-      await this.logApiCall('twitter', 'user-tweets', true, Date.now() - startTime);
-    } catch (error) {
-      await this.logApiCall('twitter', 'user-tweets', false, Date.now() - startTime, (error as Error).message);
-      console.error('Twitter API error:', error);
-    }
-  }
 
   // News API for Tesla-related headlines with real data
   static async fetchAmdNews(): Promise<void> {
@@ -577,7 +505,7 @@ export class ApiService {
     try {
       const currentPrice = await teslaStorage.getLatestStockPrice();
       const technicalIndicators = await teslaStorage.getLatestTechnicalIndicators();
-      const recentTweets = await teslaStorage.getRecentTweets(24);
+      const recentTweets = [];
       const recentNews = await teslaStorage.getRecentNews(24);
 
       if (!currentPrice) {
@@ -620,11 +548,8 @@ export class ApiService {
       score += changePercent * 2; // Recent momentum
 
       // Sentiment factors
-      let avgTweetSentiment = 0;
-      if (recentTweets.length > 0) {
-        avgTweetSentiment = recentTweets.reduce((sum, tweet) => sum + parseFloat(tweet.sentimentScore), 0) / recentTweets.length;
-        score += avgTweetSentiment * 10;
-      }
+      // Twitter sentiment analysis removed by user request
+      const avgTweetSentiment = 0;
 
       let avgNewsSentiment = 0;
       if (recentNews.length > 0) {
@@ -669,8 +594,7 @@ export class ApiService {
         else if (rsi > 50) reasons.push('RSI shows bullish momentum');
       }
       
-      if (avgTweetSentiment > 0.2) reasons.push('Positive Lisa Su tweet sentiment');
-      else if (avgTweetSentiment < -0.2) reasons.push('Negative tweet sentiment concern');
+      // Twitter sentiment factors removed
       
       if (avgNewsSentiment > 0.2) reasons.push('Positive news coverage');
       else if (avgNewsSentiment < -0.2) reasons.push('Negative news sentiment');
@@ -760,7 +684,7 @@ export class ApiService {
         this.fetchStockData(),
         this.fetchFundamentalData(),
         this.fetchInsiderTrades(),
-        this.fetchLisaSuTweets(),
+
         this.fetchAmdNews(),
       ]);
 
@@ -787,13 +711,13 @@ export class ApiService {
     
     try {
       // Gather comprehensive data
-      const [currentPrice, technicalIndicators, recentTweets, recentNews, fundamentalData] = await Promise.all([
+      const [currentPrice, technicalIndicators, recentNews, fundamentalData] = await Promise.all([
         teslaStorage.getLatestStockPrice(),
         teslaStorage.getLatestTechnicalIndicators(),
-        teslaStorage.getRecentTweets(48),
         teslaStorage.getRecentNews(48),
         teslaStorage.getLatestFundamentalData()
       ]);
+      const recentTweets = []; // Twitter functionality removed
 
       if (!currentPrice || !technicalIndicators) {
         console.warn('Missing required data for advanced prediction');
@@ -816,7 +740,7 @@ TECHNICAL ANALYSIS:
 - SMA50: ${technicalIndicators.sma50 || 'N/A'} (medium-term trend)
 
 SENTIMENT ANALYSIS:
-Recent Tweets (${recentTweets.length}): ${recentTweets.slice(0, 3).map(t => `"${t.tweetText.substring(0, 60)}..." (${t.sentimentLabel}: ${t.sentimentScore})`).join('; ')}
+Social Media Sentiment: Twitter functionality disabled per user request
 
 Recent News (${recentNews.length}): ${recentNews.slice(0, 2).map(n => `"${n.headline.substring(0, 50)}..." (sentiment: ${n.sentimentScore || 'neutral'})`).join('; ')}
 
@@ -824,7 +748,7 @@ ANALYSIS REQUIREMENTS:
 1. Consider market momentum, volume patterns, and price action
 2. Analyze RSI for overbought/oversold conditions
 3. Evaluate MACD for trend direction
-4. Weight sentiment impact from Lisa Su's tweets and news
+4. Weight sentiment impact from news and semiconductor industry analysis
 5. Factor in AMD's semiconductor market volatility and earnings cycle patterns
 6. Consider broader market conditions
 

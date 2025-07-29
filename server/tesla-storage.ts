@@ -7,7 +7,7 @@ import type {
   TechnicalIndicator, InsertTechnicalIndicator,
   FundamentalData, InsertFundamentalData,
   InsiderTrade, InsertInsiderTrade,
-  TweetSentiment, InsertTweetSentiment,
+
   NewsArticle, InsertNewsArticle,
   AiPrediction, InsertAiPrediction,
   MarketAnomaly, InsertMarketAnomaly,
@@ -33,9 +33,7 @@ export interface IAmdStorage {
   insertInsiderTrade(data: InsertInsiderTrade): Promise<InsiderTrade>;
   getRecentInsiderTrades(days: number): Promise<InsiderTrade[]>;
 
-  // Tweet sentiment
-  insertTweetSentiment(data: InsertTweetSentiment): Promise<TweetSentiment>;
-  getRecentTweets(hours: number): Promise<TweetSentiment[]>;
+
 
   // News articles
   insertNewsArticle(data: InsertNewsArticle): Promise<NewsArticle>;
@@ -63,7 +61,7 @@ class AmdMemStorage implements IAmdStorage {
   private technicalIndicators: TechnicalIndicator[] = [];
   private fundamentalData: FundamentalData[] = [];
   private insiderTrades: InsiderTrade[] = [];
-  private tweetSentiments: TweetSentiment[] = [];
+
   private newsArticles: NewsArticle[] = [];
   private aiPredictions: AiPrediction[] = [];
   private marketAnomalies: MarketAnomaly[] = [];
@@ -136,23 +134,7 @@ class AmdMemStorage implements IAmdStorage {
       .slice(0, 10);
   }
 
-  async insertTweetSentiment(data: InsertTweetSentiment): Promise<TweetSentiment> {
-    const tweet: TweetSentiment = {
-      id: crypto.randomUUID(),
-      timestamp: new Date(),
-      ...data,
-    };
-    this.tweetSentiments.push(tweet);
-    return tweet;
-  }
 
-  async getRecentTweets(hours: number): Promise<TweetSentiment[]> {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return this.tweetSentiments
-      .filter(tweet => tweet.tweetDate >= cutoff)
-      .sort((a, b) => b.tweetDate.getTime() - a.tweetDate.getTime())
-      .slice(0, 5);
-  }
 
   async insertNewsArticle(data: InsertNewsArticle): Promise<NewsArticle> {
     const article: NewsArticle = {
@@ -258,7 +240,7 @@ class AmdMemStorage implements IAmdStorage {
     const fundamentalData = await this.getLatestFundamentalData();
     const latestPrediction = await this.getLatestPrediction();
     const recentInsiderTrades = await this.getRecentInsiderTrades(30);
-    const recentTweets = await this.getRecentTweets(24);
+    const recentTweets = []; // Twitter functionality removed
     const recentNews = await this.getRecentNews(24);
     const marketAnomalies = await this.getRecentAnomalies(24);
 
@@ -268,7 +250,7 @@ class AmdMemStorage implements IAmdStorage {
       fundamentalData: fundamentalData!,
       latestPrediction: latestPrediction!,
       recentInsiderTrades,
-      recentTweets,
+      recentTweets: [],
       recentNews,
       marketAnomalies,
     };
@@ -350,20 +332,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       .limit(10);
   }
 
-  async insertTweetSentiment(data: InsertTweetSentiment): Promise<TweetSentiment> {
-    const [result] = await this.db.insert(teslaSchema.tweetSentiment).values(data).returning();
-    return result;
-  }
 
-  async getRecentTweets(hours: number): Promise<TweetSentiment[]> {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    return await this.db
-      .select()
-      .from(teslaSchema.tweetSentiment)
-      .where(gte(teslaSchema.tweetSentiment.tweetDate, cutoff))
-      .orderBy(desc(teslaSchema.tweetSentiment.tweetDate))
-      .limit(5);
-  }
 
   async insertNewsArticle(data: InsertNewsArticle): Promise<NewsArticle> {
     const [result] = await this.db.insert(teslaSchema.newsArticles).values(data).returning();
@@ -465,7 +434,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       fundamentalData,
       latestPrediction,
       recentInsiderTrades,
-      recentTweets,
+      recentTweets: [],
       recentNews,
       marketAnomalies
     ] = await Promise.all([
@@ -474,7 +443,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       this.getLatestFundamentalData(),
       this.getLatestPrediction(),
       this.getRecentInsiderTrades(30),
-      this.getRecentTweets(24),
+      Promise.resolve([]), // Twitter functionality removed
       this.getRecentNews(24),
       this.getRecentAnomalies(24)
     ]);
@@ -485,7 +454,7 @@ class AmdDatabaseStorage implements IAmdStorage {
       fundamentalData: fundamentalData!,
       latestPrediction: latestPrediction!,
       recentInsiderTrades,
-      recentTweets,
+      recentTweets: [],
       recentNews,
       marketAnomalies,
     };

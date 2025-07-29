@@ -143,17 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Elon Musk tweets and sentiment
-  app.get('/api/amd/tweets', async (req, res) => {
-    try {
-      const hours = parseInt(req.query.hours as string) || 24;
-      const tweets = await teslaStorage.getRecentTweets(hours);
-      res.json(tweets);
-    } catch (error) {
-      console.error('Tweets error:', error);
-      res.status(500).json({ error: 'Failed to fetch tweets' });
-    }
-  });
+
 
   // Tesla news
   app.get('/api/amd/news', async (req, res) => {

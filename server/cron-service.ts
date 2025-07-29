@@ -30,15 +30,7 @@ export class CronService {
       }
     }, { scheduled: false, timezone: 'America/New_York' });
 
-    // Update Lisa Su's tweets every 2 hours
-    const tweetJob = cron.schedule('0 */2 * * *', async () => {
-      console.log('🔄 Updating Lisa Su tweets...');
-      try {
-        await ApiService.fetchLisaSuTweets();
-      } catch (error) {
-        console.error('Tweet update error:', error);
-      }
-    }, { scheduled: false });
+
 
     // Update AMD news every hour
     const newsJob = cron.schedule('0 * * * *', async () => {
@@ -73,7 +65,7 @@ export class CronService {
     // Store jobs for management
     this.jobs.set('stockData', stockDataJob);
     this.jobs.set('insiderTrades', insiderTradesJob);
-    this.jobs.set('tweets', tweetJob);
+
     this.jobs.set('news', newsJob);
     this.jobs.set('predictions', predictionJob);
     this.jobs.set('anomalies', anomalyJob);

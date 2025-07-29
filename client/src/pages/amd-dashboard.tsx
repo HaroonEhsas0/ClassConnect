@@ -18,7 +18,7 @@ import {
 import { useState } from 'react';
 import { PredictionPanel } from '@/components/tesla/prediction-panel';
 import { PriceChart } from '@/components/tesla/price-chart';
-import { TweetFeed } from '@/components/tesla/tweet-feed';
+
 import { NewsFeed } from '@/components/tesla/news-feed';
 import { InsiderTrades } from '@/components/tesla/insider-trades';
 import type { AmdDashboardData } from '../../../shared/tesla-schema';
@@ -83,7 +83,8 @@ export default function AmdDashboard() {
     );
   }
 
-  const { currentPrice, technicalIndicators, latestPrediction, recentInsiderTrades, recentTweets, recentNews } = dashboardData;
+  const { currentPrice, technicalIndicators, latestPrediction, recentInsiderTrades, recentNews } = dashboardData;
+  const recentTweets = []; // Twitter functionality removed per user request
 
   // Show loading state if critical data is missing
   if (!currentPrice) {
@@ -325,25 +326,23 @@ export default function AmdDashboard() {
             </CardContent>
           </Card>
 
-          {/* Tweet Sentiment */}
+          {/* Social Media Analysis - Twitter Removed */}
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm flex items-center">
                 <MessageSquare className="h-4 w-4 mr-2" />
-                Lisa Su Tweet Sentiment
+                Social Analysis
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">{recentTweets.length}</div>
-                <div className="text-xs text-gray-400">Recent Tweets (24h)</div>
-                {recentTweets.length > 0 && (
-                  <div className="mt-2">
-                    <Badge className={`${parseFloat(recentTweets[0].sentimentScore) > 0 ? 'bg-green-500' : parseFloat(recentTweets[0].sentimentScore) < 0 ? 'bg-red-500' : 'bg-gray-500'} text-white text-xs`}>
-                      {recentTweets[0].sentimentLabel.toUpperCase()}
-                    </Badge>
-                  </div>
-                )}
+                <div className="text-sm text-gray-400">Twitter Disabled</div>
+                <div className="text-xs text-gray-500 mt-1">Focus on News & Fundamentals</div>
+                <div className="mt-2">
+                  <Badge className="bg-blue-500 text-white text-xs">
+                    NEWS-FOCUSED
+                  </Badge>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -373,9 +372,8 @@ export default function AmdDashboard() {
         </div>
 
         {/* Detailed Information Panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PriceChart />
-          <TweetFeed tweets={recentTweets} />
           <NewsFeed news={recentNews} />
         </div>
 
