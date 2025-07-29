@@ -6,6 +6,7 @@ import { teslaStorage } from "./tesla-storage";
 import { ApiService } from "./api-services";
 import { CronService } from "./cron-service";
 import { AdvancedAIPredictor } from "./advanced-ai-predictor";
+import { MarketClosePredictor } from "./market-close-predictor";
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -84,20 +85,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Market Close Price Forecast (key feature)
+  // Professional Market Close Prediction (Main Feature)
+  app.get('/api/amd/market-close-prediction', async (req, res) => {
+    try {
+      console.log('🎯 Generating professional market close prediction...');
+      const predictor = new MarketClosePredictor();
+      const prediction = await predictor.generateMarketClosePrediction();
+      res.json(prediction);
+    } catch (error) {
+      console.error('Market close prediction error:', error);
+      res.status(500).json({ error: 'Failed to generate market close prediction' });
+    }
+  });
+
+  // Legacy market close forecast endpoint
   app.get('/api/amd/market-close-forecast', async (req, res) => {
     try {
       console.log('🎯 Generating market close price forecast...');
-      const predictor = new AdvancedAIPredictor();
-      const prediction = await predictor.generateComprehensivePrediction();
+      const predictor = new MarketClosePredictor();
+      const prediction = await predictor.generateMarketClosePrediction();
       
       res.json({
         currentPrice: prediction.currentPrice,
-        marketCloseTarget: prediction.marketCloseTarget,
-        timeToTarget: prediction.timeToTarget,
+        predictedClosePrice: prediction.predictedClosePrice,
         confidence: prediction.confidence,
         recommendation: prediction.recommendation,
-        reasoning: prediction.reasoning.slice(0, 5) // Top 5 reasons
+        reasoning: prediction.reasoning.slice(0, 5),
+        marketHours: prediction.marketHours,
+        stabilityScore: prediction.stabilityScore
       });
     } catch (error) {
       console.error('Market close forecast error:', error);
