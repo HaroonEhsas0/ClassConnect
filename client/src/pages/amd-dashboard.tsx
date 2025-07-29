@@ -16,7 +16,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useState } from 'react';
-import { PredictionPanel } from '@/components/tesla/prediction-panel';
+
 import { PriceChart } from '@/components/tesla/price-chart';
 
 // News functionality removed
@@ -262,11 +262,6 @@ export default function AmdDashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* AI Prediction Panel */}
-        <div className="mb-8">
-          <PredictionPanel prediction={latestPrediction} />
         </div>
 
         {/* Secondary Data Grid */}
