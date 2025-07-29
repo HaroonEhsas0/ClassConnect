@@ -42,55 +42,101 @@ export class ApiService {
       console.log('🧠 Generating enhanced AI prediction with live market data...');
 
       // Real-time prediction algorithm using current market conditions  
-      let score = 50; // Neutral baseline
+      let score = 0; // Start at 0 for unbiased analysis
       const currentPriceNum = parseFloat(currentPrice.price);
       const reasons: string[] = [];
       
-      // Price momentum analysis (enhanced)
+      // Track bullish vs bearish signals separately
+      let bullishSignals = 0;
+      let bearishSignals = 0;
+      
+      // Price momentum analysis (enhanced with aggressive bearish detection)
       const changePercent = parseFloat(currentPrice.changePercent);
       if (Math.abs(changePercent) > 0) {
-        if (changePercent > 2) {
+        if (changePercent > 3) {
+          score += 20;
+          bullishSignals++;
+          reasons.push(`Very strong bullish momentum (+${changePercent.toFixed(2)}%)`);
+        } else if (changePercent > 1.5) {
           score += 12;
+          bullishSignals++;
           reasons.push(`Strong bullish momentum (+${changePercent.toFixed(2)}%)`);
         } else if (changePercent > 0.5) {
           score += 6;
+          bullishSignals++;
           reasons.push(`Positive price momentum (+${changePercent.toFixed(2)}%)`);
-        } else if (changePercent < -2) {
-          score -= 8;
-          reasons.push(`Bearish momentum (${changePercent.toFixed(2)}%)`);
+        } else if (changePercent < -3) {
+          score -= 25;
+          bearishSignals++;
+          reasons.push(`Very strong bearish momentum (${changePercent.toFixed(2)}%)`);
+        } else if (changePercent < -1.5) {
+          score -= 15;
+          bearishSignals++;
+          reasons.push(`Strong bearish momentum (${changePercent.toFixed(2)}%)`);
         } else if (changePercent < -0.5) {
-          score -= 4;
+          score -= 8;
+          bearishSignals++;
           reasons.push(`Negative price action (${changePercent.toFixed(2)}%)`);
         }
       }
 
-      // Volume analysis
+      // Volume analysis with bearish signals
       const volume = currentPrice.volume;
-      if (volume > 50000000) { // High volume threshold for AMD
-        score += 5;
-        reasons.push(`High trading volume indicates strong interest (${(volume/1000000).toFixed(1)}M shares)`);
-      } else if (volume < 20000000) {
-        score -= 3;
-        reasons.push('Low volume suggests weak conviction');
+      if (volume > 60000000) { // Very high volume threshold for AMD
+        if (changePercent > 0) {
+          score += 8;
+          bullishSignals++;
+          reasons.push(`Very high volume on green day (${(volume/1000000).toFixed(1)}M shares)`);
+        } else {
+          score -= 12;
+          bearishSignals++;
+          reasons.push(`Very high volume on red day - selling pressure (${(volume/1000000).toFixed(1)}M shares)`);
+        }
+      } else if (volume > 40000000) {
+        if (changePercent > 0) {
+          score += 5;
+          bullishSignals++;
+          reasons.push(`High volume supports upward move (${(volume/1000000).toFixed(1)}M shares)`);
+        } else {
+          score -= 8;
+          bearishSignals++;
+          reasons.push(`High volume on decline signals weakness (${(volume/1000000).toFixed(1)}M shares)`);
+        }
+      } else if (volume < 15000000) {
+        score -= 5;
+        reasons.push(`Low volume suggests weak conviction (${(volume/1000000).toFixed(1)}M shares)`);
       }
 
-      // Technical indicators analysis (enhanced)
+      // Technical indicators analysis (enhanced with strong bearish detection)
       if (technicalIndicators?.rsi) {
         const rsi = parseFloat(technicalIndicators.rsi);
-        if (rsi > 75) {
-          score -= 12;
+        if (rsi > 80) {
+          score -= 20;
+          bearishSignals++;
+          reasons.push(`Extremely overbought - strong SELL signal (RSI: ${rsi.toFixed(1)})`);
+        } else if (rsi > 75) {
+          score -= 15;
+          bearishSignals++;
           reasons.push(`Severely overbought (RSI: ${rsi.toFixed(1)})`);
         } else if (rsi > 70) {
-          score -= 6;
+          score -= 8;
+          bearishSignals++;
           reasons.push(`Overbought conditions (RSI: ${rsi.toFixed(1)})`);
+        } else if (rsi < 20) {
+          score += 25;
+          bullishSignals++;
+          reasons.push(`Extremely oversold - strong BUY opportunity (RSI: ${rsi.toFixed(1)})`);
         } else if (rsi < 25) {
           score += 15;
+          bullishSignals++;
           reasons.push(`Oversold opportunity (RSI: ${rsi.toFixed(1)})`);
         } else if (rsi < 30) {
           score += 8;
+          bullishSignals++;
           reasons.push(`Oversold conditions (RSI: ${rsi.toFixed(1)})`);
-        } else if (rsi > 50) {
+        } else if (rsi > 50 && rsi <= 60) {
           score += 3;
+          bullishSignals++;
           reasons.push(`Bullish momentum (RSI: ${rsi.toFixed(1)})`);
         }
       }
@@ -187,18 +233,19 @@ export class ApiService {
         }
       }
 
-      // Normalize score and generate prediction
-      score = Math.max(10, Math.min(90, score));
+      // Enhanced scoring with proper balance (scores can now be negative for strong SELL signals)
+      score = Math.max(-30, Math.min(100, score));
       
-      // Calculate predicted price based on score
-      const priceVariation = (score - 50) / 100; // Convert to percentage
-      const predictedPrice = currentPriceNum * (1 + priceVariation * 0.02); // Max 2% variation
+      // Calculate predicted price based on score with proper scaling
+      const priceVariation = score / 100; // Convert to percentage (-30 to 100)
+      const predictedPrice = currentPriceNum * (1 + priceVariation * 0.015); // Scale variation
       
-      // Determine recommendation and risk level
+      // Determine recommendation and risk level based on enhanced scoring
       let recommendation: string;
       let riskLevel: string;
       
-      if (score >= 75) {
+      // Enhanced thresholds for better SELL detection
+      if (score >= 80) {
         recommendation = 'strong_buy';
         riskLevel = 'medium';
       } else if (score >= 60) {
@@ -207,12 +254,19 @@ export class ApiService {
       } else if (score >= 40) {
         recommendation = 'hold';
         riskLevel = 'low';
-      } else if (score >= 25) {
+      } else if (score >= 20) {
         recommendation = 'sell';
         riskLevel = 'medium';
       } else {
         recommendation = 'strong_sell';
         riskLevel = 'high';
+      }
+      
+      // Additional safety check: if too many bearish signals, force SELL
+      if (bearishSignals > bullishSignals && bearishSignals >= 3) {
+        recommendation = bearishSignals >= 5 ? 'strong_sell' : 'sell';
+        riskLevel = 'high';
+        score = Math.min(score, 30); // Cap score when bearish signals dominate
       }
       
       const predictionData = {
@@ -391,9 +445,15 @@ Provide ONLY valid JSON response:
     const startTime = Date.now();
     
     try {
-      // Fetch from Financial Modeling Prep (fallback with demo key)
+      const FMP_API_KEY = process.env.FINANCIAL_MODELING_PREP_API_KEY;
+      if (!FMP_API_KEY) {
+        console.log('⚠️ Financial Modeling Prep API key not found');
+        return;
+      }
+
+      // Fetch from Financial Modeling Prep using real API key
       const fmpResponse = await axios.get(
-        `https://financialmodelingprep.com/api/v3/profile/AMD?apikey=demo`
+        `https://financialmodelingprep.com/api/v3/profile/AMD?apikey=${FMP_API_KEY}`
       );
 
       if (fmpResponse.data && fmpResponse.data.length > 0) {
