@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { teslaStorage } from './tesla-storage';
-import type { InsertTechnicalIndicator, InsertNewsArticle, InsertMarketAnomaly } from '@shared/tesla-schema';
+import type { InsertTechnicalIndicator, InsertNewsArticle, InsertMarketAnomaly, InsertStockPrice, InsertFundamentalData } from '@shared/tesla-schema';
 import * as sentiment from 'sentiment';
 
 export class ApiService {
@@ -9,7 +9,7 @@ export class ApiService {
   static async logApiCall(service: string, endpoint: string, success: boolean, responseTime: number, errorMessage?: string): Promise<void> {
     try {
       const logData = {
-        service,
+        provider: service,
         endpoint,
         success,
         responseTime,
@@ -156,8 +156,8 @@ export class ApiService {
 
       // News sentiment analysis
       if (recentNews && recentNews.length > 0) {
-        const avgSentiment = recentNews.reduce((sum, news) => sum + parseFloat(news.sentimentScore), 0) / recentNews.length;
-        const relevantNewsCount = recentNews.filter(news => parseFloat(news.relevanceScore) > 6).length;
+        const avgSentiment = recentNews.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNews.length;
+        const relevantNewsCount = recentNews.filter(news => parseFloat(news.relevanceScore || '0') > 6).length;
         
         if (avgSentiment > 0.3) {
           score += 8;
@@ -367,16 +367,12 @@ Provide ONLY valid JSON response:
         const change = currentPrice - previousClose;
         const changePercent = ((change / previousClose) * 100);
         
-        const stockData: InsertStockPrice = {
+        const stockData = {
           symbol: 'AMD',
           price: currentPrice.toFixed(2),
           change: change.toFixed(2),
           changePercent: changePercent.toFixed(2),
-          volume: quote.volume[latestIndex] || 0,
-          marketCap: (currentPrice * 1610000000).toString(), // AMD shares outstanding
-          peRatio: meta.trailingPE?.toFixed(2) || 'N/A',
-          high52Week: meta.fiftyTwoWeekHigh?.toFixed(2) || 'N/A',
-          low52Week: meta.fiftyTwoWeekLow?.toFixed(2) || 'N/A'
+          volume: quote.volume[latestIndex] || 0
         };
 
         await teslaStorage.insertStockPrice(stockData);
@@ -403,24 +399,13 @@ Provide ONLY valid JSON response:
       if (fmpResponse.data && fmpResponse.data.length > 0) {
         const profile = fmpResponse.data[0];
         
-        const fundamentalData: InsertFundamentalData = {
+        const fundamentalData = {
           symbol: 'AMD',
-          marketCap: profile.mktCap?.toString() || 'N/A',
-          peRatio: profile.pe?.toFixed(2) || 'N/A',
-          pegRatio: 'N/A',
-          pbRatio: 'N/A',
-          debtToEquity: 'N/A',
-          roe: 'N/A',
-          roa: 'N/A',
-          grossMargin: 'N/A',
-          operatingMargin: 'N/A',
-          netMargin: 'N/A',
-          currentRatio: 'N/A',
-          quickRatio: 'N/A',
-          cashPerShare: 'N/A',
-          bookValuePerShare: 'N/A',
-          operatingCashFlow: 'N/A',
-          freeCashFlow: 'N/A'
+          peRatio: profile.pe?.toFixed(2) || null,
+          marketCap: profile.mktCap?.toString() || null,
+          beta: profile.beta?.toString() || null,
+          eps: profile.eps?.toString() || null,
+          revenue: profile.revenue?.toString() || null
         };
 
         await teslaStorage.insertFundamentalData(fundamentalData);
@@ -440,8 +425,7 @@ Provide ONLY valid JSON response:
       await Promise.all([
         this.fetchStockData(),
         this.fetchFundamentalData(),
-        this.generateAiPrediction(),
-        this.generateAdvancedAiPrediction()
+        this.generateAiPrediction()
       ]);
       
       console.log('✅ Real-time AMD data update completed');

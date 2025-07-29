@@ -18,6 +18,7 @@ import {
 import { useState } from 'react';
 
 import { PriceChart } from '@/components/tesla/price-chart';
+import { AdvancedPredictionPanel } from '@/components/advanced-prediction-panel';
 
 // News functionality removed
 import { InsiderTrades } from '@/components/tesla/insider-trades';

@@ -5,6 +5,7 @@ import { insertChatMessageSchema, type SearchFilters } from "@shared/schema";
 import { teslaStorage } from "./tesla-storage";
 import { ApiService } from "./api-services";
 import { CronService } from "./cron-service";
+import { AdvancedAIPredictor } from "./advanced-ai-predictor";
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -70,7 +71,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI predictions
+  // Advanced Professional AI Prediction System
+  app.get('/api/amd/prediction/advanced', async (req, res) => {
+    try {
+      console.log('🚀 Generating professional-grade AI prediction...');
+      const predictor = new AdvancedAIPredictor();
+      const prediction = await predictor.generateComprehensivePrediction();
+      res.json(prediction);
+    } catch (error) {
+      console.error('Advanced prediction error:', error);
+      res.status(500).json({ error: 'Failed to generate advanced prediction' });
+    }
+  });
+
+  // Market Close Price Forecast (key feature)
+  app.get('/api/amd/market-close-forecast', async (req, res) => {
+    try {
+      console.log('🎯 Generating market close price forecast...');
+      const predictor = new AdvancedAIPredictor();
+      const prediction = await predictor.generateComprehensivePrediction();
+      
+      res.json({
+        currentPrice: prediction.currentPrice,
+        marketCloseTarget: prediction.marketCloseTarget,
+        timeToTarget: prediction.timeToTarget,
+        confidence: prediction.confidence,
+        recommendation: prediction.recommendation,
+        reasoning: prediction.reasoning.slice(0, 5) // Top 5 reasons
+      });
+    } catch (error) {
+      console.error('Market close forecast error:', error);
+      res.status(500).json({ error: 'Failed to generate market close forecast' });
+    }
+  });
+
+  // Basic AI predictions (legacy)
   app.get('/api/amd/prediction', async (req, res) => {
     try {
       const prediction = await teslaStorage.getLatestPrediction();
