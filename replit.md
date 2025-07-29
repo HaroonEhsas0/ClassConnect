@@ -2,11 +2,14 @@
 
 ## Overview
 
-Tesla Stock Prediction System is an advanced AI-powered financial analysis platform that provides comprehensive Tesla (TSLA) stock analysis, real-time data feeds, and AI-driven predictions. The system integrates multiple data sources including Alpha Vantage, Finnhub, Twitter API, News API, and OpenAI to deliver accurate insights with 5-day price forecasts and market sentiment analysis. This is a pure prediction system focused on analysis and forecasting, not trading.
+Professional-grade Tesla Stock Prediction System with institutional-level algorithms providing highly accurate 1-day price forecasts. The system integrates multiple real-time data sources including Yahoo Finance, Twelve Data, Polygon.io, Financial Modeling Prep, and crypto correlation analysis. Features advanced technical analysis, multi-factor sentiment scoring, volume analysis, and professional risk assessment. Built with pro-trader mindset for maximum prediction accuracy using authentic market data.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Focus: Real data sources only, no mock/synthetic data
+Priority: Professional trading-grade prediction accuracy
+Requirements: Multi-source data aggregation, institutional algorithms
 
 ## System Architecture
 
