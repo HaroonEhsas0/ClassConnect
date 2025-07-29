@@ -84,7 +84,7 @@ export default function AmdDashboard() {
     );
   }
 
-  const { currentPrice, technicalIndicators, latestPrediction, recentInsiderTrades } = dashboardData;
+  const { currentPrice, technicalIndicators, prediction: latestPrediction, insiderTrades: recentInsiderTrades } = dashboardData;
   const recentTweets = []; // Twitter functionality removed per user request
 
   // Show loading state if critical data is missing
@@ -208,8 +208,8 @@ export default function AmdDashboard() {
                       <span className="text-2xl font-bold text-blue-400">
                         ${parseFloat(latestPrediction.predictedPrice).toFixed(2)}
                       </span>
-                      <Badge className={`${getRiskBadgeColor(latestPrediction.riskLevel)} text-white`}>
-                        {latestPrediction.riskLevel.toUpperCase()} RISK
+                      <Badge className={`${getRiskBadgeColor(latestPrediction.riskLevel || 'medium')} text-white`}>
+                        {(latestPrediction.riskLevel || 'medium').toUpperCase()} RISK
                       </Badge>
                     </div>
                     <div className="text-xs text-green-400 mt-1">
@@ -217,7 +217,7 @@ export default function AmdDashboard() {
                       ({((parseFloat(latestPrediction.predictedPrice) - parseFloat(currentPrice.price)) / parseFloat(currentPrice.price) * 100).toFixed(2)}%)
                     </div>
                     <div className="text-sm text-gray-400">
-                      Confidence: {latestPrediction.confidence}%
+                      Confidence: {parseFloat(latestPrediction.confidence).toFixed(1)}%
                     </div>
                   </>
                 ) : (
@@ -246,8 +246,8 @@ export default function AmdDashboard() {
                         {latestPrediction.aiRating}%
                       </span>
                       <div className="text-right">
-                        <div className="text-2xl">{getRecommendationIcon(latestPrediction.recommendation)}</div>
-                        <span className="text-sm font-medium">{getRecommendationLabel(latestPrediction.recommendation)}</span>
+                        <div className="text-2xl">{getRecommendationIcon(latestPrediction.recommendation || 'hold')}</div>
+                        <span className="text-sm font-medium">{getRecommendationLabel(latestPrediction.recommendation || 'hold')}</span>
                       </div>
                     </div>
                     <div className="text-xs text-gray-400">
@@ -319,7 +319,7 @@ export default function AmdDashboard() {
                 {recentInsiderTrades.length > 0 && (
                   <div className="mt-2 text-xs">
                     <span className={`${recentInsiderTrades[0].transactionType === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
-                      Latest: {recentInsiderTrades[0].transactionType.toUpperCase()} by {recentInsiderTrades[0].insiderName}
+                      Latest: {(recentInsiderTrades[0].transactionType || 'buy').toUpperCase()} by {recentInsiderTrades[0].insiderName || 'Unknown'}
                     </span>
                   </div>
                 )}

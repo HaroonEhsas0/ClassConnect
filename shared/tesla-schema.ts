@@ -162,9 +162,9 @@ export type AmdDashboardData = {
   currentPrice: StockPrice;
   technicalIndicators: TechnicalIndicator;
   fundamentalData: FundamentalData;
-  latestPrediction: AiPrediction;
-  recentInsiderTrades: InsiderTrade[];
-  recentTweets: never[]; // Twitter functionality removed
-  recentNews: never[]; // News functionality removed
-  marketAnomalies: MarketAnomaly[];
+  prediction: AiPrediction;
+  priceHistory: StockPrice[];
+  insiderTrades: InsiderTrade[];
+  recentNews: NewsArticle[];
+  anomalies: MarketAnomaly[];
 };
