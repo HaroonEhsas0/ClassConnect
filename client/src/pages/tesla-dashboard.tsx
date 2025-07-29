@@ -16,7 +16,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useState } from 'react';
-import { TradingPanel } from '@/components/tesla/trading-panel';
+import { PredictionPanel } from '@/components/tesla/prediction-panel';
 import { PriceChart } from '@/components/tesla/price-chart';
 import { TweetFeed } from '@/components/tesla/tweet-feed';
 import { NewsFeed } from '@/components/tesla/news-feed';
@@ -50,7 +50,7 @@ export default function TeslaDashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-20">
             <div className="animate-spin text-6xl mb-4">⚡</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Tesla Trading Assistant</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Tesla Prediction System</h2>
             <p className="text-gray-300">Loading market data...</p>
           </div>
         </div>
@@ -113,9 +113,9 @@ export default function TeslaDashboard() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Tesla Trading Assistant
+              Tesla Prediction System
             </h1>
-            <p className="text-gray-300 mt-2">AI-Powered TSLA Stock Analysis & Predictions</p>
+            <p className="text-gray-300 mt-2">AI-Powered TSLA Stock Analysis & Forecasting</p>
           </div>
           <Button
             onClick={() => refreshMutation.mutate()}
@@ -165,17 +165,25 @@ export default function TeslaDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-bold text-blue-400">
-                    ${parseFloat(latestPrediction.predictedPrice).toFixed(2)}
-                  </span>
-                  <Badge className={`${getRiskBadgeColor(latestPrediction.riskLevel)} text-white`}>
-                    {latestPrediction.riskLevel.toUpperCase()} RISK
-                  </Badge>
-                </div>
-                <div className="text-sm text-gray-400">
-                  Confidence: {latestPrediction.confidence}%
-                </div>
+                {latestPrediction ? (
+                  <>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-2xl font-bold text-blue-400">
+                        ${parseFloat(latestPrediction.predictedPrice).toFixed(2)}
+                      </span>
+                      <Badge className={`${getRiskBadgeColor(latestPrediction.riskLevel)} text-white`}>
+                        {latestPrediction.riskLevel.toUpperCase()} RISK
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      Confidence: {latestPrediction.confidence}%
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="animate-pulse text-gray-400">Generating prediction...</div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -190,26 +198,34 @@ export default function TeslaDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-white">
-                    {latestPrediction.aiRating}%
-                  </span>
-                  <div className="text-right">
-                    <div className="text-2xl">{getRecommendationIcon(latestPrediction.recommendation)}</div>
-                    <span className="text-sm font-medium">{getRecommendationLabel(latestPrediction.recommendation)}</span>
+                {latestPrediction ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-white">
+                        {latestPrediction.aiRating}%
+                      </span>
+                      <div className="text-right">
+                        <div className="text-2xl">{getRecommendationIcon(latestPrediction.recommendation)}</div>
+                        <span className="text-sm font-medium">{getRecommendationLabel(latestPrediction.recommendation)}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {latestPrediction.reasoning}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="animate-pulse text-gray-400">Analyzing data...</div>
                   </div>
-                </div>
-                <div className="text-xs text-gray-400">
-                  {latestPrediction.reasoning}
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Trading Panel */}
+        {/* AI Prediction Panel */}
         <div className="mb-8">
-          <TradingPanel currentPrice={currentPrice} prediction={latestPrediction} />
+          <PredictionPanel prediction={latestPrediction} />
         </div>
 
         {/* Secondary Data Grid */}

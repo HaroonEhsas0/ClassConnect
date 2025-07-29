@@ -1,8 +1,8 @@
-# Tesla Stock Trading Assistant
+# Tesla Stock Prediction System
 
 ## Overview
 
-Tesla Stock Trading Assistant is an advanced AI-powered financial analysis platform that provides comprehensive Tesla (TSLA) stock analysis, real-time data feeds, AI-driven predictions, and trading recommendations. The system integrates multiple data sources including Alpha Vantage, Finnhub, Twitter API, and news feeds to deliver actionable insights with 5-day price forecasts and intelligent buy/sell recommendations.
+Tesla Stock Prediction System is an advanced AI-powered financial analysis platform that provides comprehensive Tesla (TSLA) stock analysis, real-time data feeds, and AI-driven predictions. The system integrates multiple data sources including Alpha Vantage, Finnhub, Twitter API, News API, and OpenAI to deliver accurate insights with 5-day price forecasts and market sentiment analysis. This is a pure prediction system focused on analysis and forecasting, not trading.
 
 ## User Preferences
 
