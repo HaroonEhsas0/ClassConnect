@@ -318,12 +318,21 @@ class AmdMemStorage implements IAmdStorage {
   }
 
   async insertTechnicalIndicator(data: InsertTechnicalIndicator): Promise<TechnicalIndicator> {
+    console.log('📊 Memory Storage - Inserting technical indicator:', data);
     const indicator: TechnicalIndicator = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      symbol: data.symbol || 'AMD',
+      rsi: data.rsi || null,
+      macd: data.macd || null,
+      macdSignal: data.macdSignal || null,
+      sma20: data.sma20 || null,
+      sma50: data.sma50 || null,
+      ema12: data.ema12 || null,
+      ema26: data.ema26 || null,
     };
     this.technicalIndicators.push(indicator);
+    console.log('✅ Technical indicator saved, total count:', this.technicalIndicators.length);
     return indicator;
   }
 
@@ -346,12 +355,20 @@ class AmdMemStorage implements IAmdStorage {
   }
 
   async insertInsiderTrade(data: InsertInsiderTrade): Promise<InsiderTrade> {
+    console.log('💼 Memory Storage - Inserting insider trade:', data);
     const trade: InsiderTrade = {
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      ...data,
+      symbol: data.symbol || 'AMD',
+      price: data.price,
+      insiderName: data.insiderName,
+      transactionType: data.transactionType,
+      shares: data.shares,
+      transactionDate: data.transactionDate,
+      filingDate: data.filingDate,
     };
     this.insiderTrades.push(trade);
+    console.log('✅ Insider trade saved, total count:', this.insiderTrades.length);
     return trade;
   }
 

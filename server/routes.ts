@@ -52,10 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/amd/refresh', async (req, res) => {
     try {
       console.log('🔄 Force refreshing all AMD data...');
-      await Promise.all([
-        ApiService.fetchStockData(),
-        ApiService.fetchRealTimeAmdData()
-      ]);
+      await ApiService.refreshAllData();
       
       const dashboardData = await teslaStorage.getDashboardData();
       res.json({ 
