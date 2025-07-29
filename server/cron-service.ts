@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+import * as cron from 'node-cron';
 import { ApiService } from './api-services';
 
 export class CronService {
@@ -7,9 +7,9 @@ export class CronService {
   static start() {
     console.log('🕒 Starting AMD data CRON jobs...');
 
-    // Update stock data every 30 minutes during market hours (9:30 AM - 4:00 PM ET, Mon-Fri)
-    const stockDataJob = cron.schedule('*/30 9-16 * * 1-5', async () => {
-      console.log('🔄 Updating stock data and technical indicators...');
+    // Update stock data every 1 minute for real-time pricing (9:30 AM - 4:00 PM ET, Mon-Fri)
+    const stockDataJob = cron.schedule('* 9-16 * * 1-5', async () => {
+      console.log('🔄 Updating real-time stock data...');
       try {
         await Promise.all([
           ApiService.fetchStockData(),
@@ -18,7 +18,7 @@ export class CronService {
       } catch (error) {
         console.error('Stock data update error:', error);
       }
-    }, { scheduled: false, timezone: 'America/New_York' });
+    }, { timezone: 'America/New_York' });
 
     // Update insider trades daily at 6 AM ET
     const insiderTradesJob = cron.schedule('0 6 * * 1-5', async () => {
@@ -28,7 +28,7 @@ export class CronService {
       } catch (error) {
         console.error('Insider trades update error:', error);
       }
-    }, { scheduled: false, timezone: 'America/New_York' });
+    }, { timezone: 'America/New_York' });
 
 
 
@@ -40,7 +40,7 @@ export class CronService {
       } catch (error) {
         console.error('News update error:', error);
       }
-    }, { scheduled: false });
+    });
 
     // Generate AI predictions every hour during market hours
     const predictionJob = cron.schedule('0 9-16 * * 1-5', async () => {
@@ -50,25 +50,35 @@ export class CronService {
       } catch (error) {
         console.error('AI prediction error:', error);
       }
-    }, { scheduled: false, timezone: 'America/New_York' });
+    }, { timezone: 'America/New_York' });
 
-    // Check for market anomalies every 15 minutes during market hours
-    const anomalyJob = cron.schedule('*/15 9-16 * * 1-5', async () => {
+    // Check for market anomalies every 5 minutes during market hours for faster detection
+    const anomalyJob = cron.schedule('*/5 9-16 * * 1-5', async () => {
       console.log('🔄 Detecting market anomalies...');
       try {
         await ApiService.detectMarketAnomalies();
       } catch (error) {
         console.error('Anomaly detection error:', error);
       }
-    }, { scheduled: false, timezone: 'America/New_York' });
+    }, { timezone: 'America/New_York' });
+
+    // Add continuous real-time updates (every 2 minutes for immediate pricing)
+    const realTimeJob = cron.schedule('*/2 * * * *', async () => {
+      console.log('🔄 Real-time data update...');
+      try {
+        await ApiService.fetchRealTimeAmdData();
+      } catch (error) {
+        console.error('Real-time update error:', error);
+      }
+    });
 
     // Store jobs for management
     this.jobs.set('stockData', stockDataJob);
     this.jobs.set('insiderTrades', insiderTradesJob);
-
     this.jobs.set('news', newsJob);
     this.jobs.set('predictions', predictionJob);
     this.jobs.set('anomalies', anomalyJob);
+    this.jobs.set('realTime', realTimeJob);
 
     // Start all jobs
     this.jobs.forEach((job, name) => {

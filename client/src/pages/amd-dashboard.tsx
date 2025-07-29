@@ -29,7 +29,8 @@ export default function AmdDashboard() {
 
   const { data: dashboardData, isLoading, error } = useQuery<AmdDashboardData>({
     queryKey: ['/api/amd/dashboard'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+    staleTime: 1000, // Consider data stale after 1 second
   });
 
   const refreshMutation = useMutation({

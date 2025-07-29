@@ -103,9 +103,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Real-time stock price
+  // Real-time stock price with optional refresh
   app.get('/api/amd/price', async (req, res) => {
     try {
+      // Check if refresh is requested
+      if (req.query.refresh === 'true') {
+        console.log('🔄 Force refreshing AMD stock data...');
+        await ApiService.fetchStockData();
+      }
+      
       const price = await teslaStorage.getLatestStockPrice();
       if (!price) {
         return res.status(404).json({ error: 'No price data available' });
@@ -114,6 +120,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Price fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch price data' });
+    }
+  });
+
+  // Force refresh all AMD data (real-time endpoint)
+  app.post('/api/amd/refresh', async (req, res) => {
+    try {
+      console.log('🔄 Force refreshing all AMD data...');
+      await Promise.all([
+        ApiService.fetchStockData(),
+        ApiService.fetchRealTimeAmdData()
+      ]);
+      
+      const dashboardData = await teslaStorage.getDashboardData();
+      res.json({ 
+        success: true, 
+        message: 'Data refreshed successfully',
+        data: dashboardData 
+      });
+    } catch (error) {
+      console.error('Force refresh error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to refresh data',
+        message: (error as Error).message 
+      });
     }
   });
 
