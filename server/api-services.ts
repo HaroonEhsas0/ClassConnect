@@ -295,7 +295,7 @@ export class ApiService {
         predictedPrice: predictedPrice.toFixed(2),
         predictionDays: 1,
         confidence: Math.max(60, Math.min(95, 70 + Math.abs(score))).toFixed(0),
-        aiRating: Math.max(1, Math.min(100, Math.round(score + 50))), // Normalize to 1-100 scale
+        aiRating: Math.max(60, Math.min(95, 70 + Math.abs(score))), // Use same confidence system
         recommendation,
         riskLevel,
         reasoning: reasons.length > 0 ? reasons.join('. ') + '. Real-time analysis based on current market conditions.' : 'Real-time prediction based on technical analysis and market momentum',
@@ -308,7 +308,8 @@ export class ApiService {
       // Cache the stable prediction for 30 minutes
       cache.setCachedPrediction('AMD', predictionData);
       
-      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} (Score: ${Math.round(score + 50)}/100)`);
+      const finalConfidence = Math.max(60, Math.min(95, 70 + Math.abs(score)));
+      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} (${finalConfidence}% confidence)`);
       
     } catch (error) {
       await this.logApiCall('ai_engine', 'enhanced_prediction', false, Date.now() - startTime, (error as Error).message);
@@ -405,7 +406,7 @@ Provide ONLY valid JSON response:
         predictedPrice: aiPrediction.predictedPrice,
         predictionDays: 1,
         confidence: aiPrediction.confidence.toString(),
-        aiRating: aiPrediction.aiRating,
+        aiRating: parseInt(aiPrediction.confidence), // Use same confidence for both
         recommendation: aiPrediction.recommendation,
         riskLevel: aiPrediction.riskLevel,
         reasoning: aiPrediction.reasoning,

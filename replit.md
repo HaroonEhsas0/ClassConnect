@@ -15,6 +15,8 @@ Professional-grade AMD Stock Prediction System with institutional-level algorith
 - **VOLUME-BASED ANALYSIS**: High volume on red days triggers selling pressure warnings
 - **RSI EXTREME DETECTION**: RSI >80 triggers strong SELL, RSI <20 triggers strong BUY
 - **AUTHENTIC API INTEGRATION**: All external data sources now use real API keys for production-grade accuracy
+- **UNIFIED CONFIDENCE SYSTEM**: Fixed inconsistency - both AI Rating and Prediction Confidence now use same 60-95% scale
+- **STABLE PREDICTION CACHING**: Predictions cached for 30 minutes to prevent fluctuating recommendations
 
 ## User Preferences
 
