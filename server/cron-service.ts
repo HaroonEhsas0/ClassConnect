@@ -74,13 +74,26 @@ export class CronService {
       }
     }, { timezone: 'America/New_York' });
 
-    // Add continuous real-time updates (every 2 minutes for immediate pricing)
-    const realTimeJob = cron.schedule('*/2 * * * *', async () => {
-      console.log('🔄 Real-time data update...');
-      try {
-        await ApiService.fetchRealTimeAmdData();
-      } catch (error) {
-        console.error('Real-time update error:', error);
+    // Real-time price updates every minute during market hours, every 2 minutes after hours
+    const realTimeJob = cron.schedule('*/1 * * * *', async () => {
+      const now = new Date();
+      const hour = now.getHours();
+      const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      
+      // During market hours (9:30 AM - 4:00 PM ET, Mon-Fri): update every minute
+      const isMarketHours = day >= 1 && day <= 5 && hour >= 9 && hour <= 16;
+      
+      if (isMarketHours || now.getMinutes() % 2 === 0) { // Market hours: every minute, After hours: every 2 minutes
+        console.log('🔄 Real-time AMD price update...');
+        try {
+          await Promise.all([
+            ApiService.fetchStockData(),
+            ApiService.fetchFundamentalData()
+          ]);
+          console.log('✅ Real-time AMD price update completed');
+        } catch (error) {
+          console.error('Real-time update error:', error);
+        }
       }
     });
 

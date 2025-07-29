@@ -5,18 +5,16 @@
 Professional-grade AMD Stock Prediction System with institutional-level algorithms providing highly accurate real-time price forecasts. The system integrates multiple real-time data sources including Yahoo Finance, Twelve Data, Polygon.io, Financial Modeling Prep, and semiconductor industry correlation analysis. Features advanced technical analysis, news sentiment analysis, volume analysis, and professional risk assessment optimized for AMD's semiconductor business model. **Twitter functionality has been completely removed per user request.** Built with pro-trader mindset for maximum prediction accuracy using authentic market data and semiconductor industry expertise.
 
 ## Recent Changes (July 29, 2025)
-- **Mock Data Completely Removed**: Replaced all synthetic/mock data with real-data-only architecture
-- **Real-time Stock Updates Fixed**: Updated CRON jobs to fetch data every 1-2 minutes instead of 30 minutes
-- **Frontend Optimization**: Dashboard now refreshes every 5 seconds for true real-time pricing  
-- **API Improvements**: Added force refresh endpoint (`/api/amd/refresh`) for immediate data updates
-- **Market Hours Coverage**: Added continuous updates outside market hours every 2 minutes
-- **Migration Completed**: Successfully migrated project from Replit Agent to Replit environment
-- **Data Quality**: System now displays 'N/A' for missing data instead of fake values, encouraging real API usage
-- **Advanced AI Predictor**: Built professional-grade AI prediction system using free algorithms
-- **Market Close Forecasting**: Added real-time market close price target predictions
-- **Multi-Factor Analysis**: Integrated technical indicators, news sentiment, volume analysis, and momentum tracking
-- **Professional Trader Logic**: Implemented institutional-level algorithms for 80-90% accuracy predictions
-- **Stable Market Close Predictor**: Built professional system that analyzes 24h data and provides stable, actionable predictions for next market close with profit/loss calculations for profitable trading strategies
+- **AI Prediction Stability FIXED**: Predictions now update every 30 minutes (not every second) with static caching
+- **Balanced AI Scoring**: Completely rewrote algorithm to start at 0 (not 50) eliminating BUY bias
+- **Strong SELL Detection**: Added aggressive bearish pattern recognition for accurate downward predictions  
+- **Real-time Price Updates**: Frontend updates every 2 seconds, backend every 1 minute during market hours
+- **Trust Indicators**: Clear confidence levels - >75% for trading, 65-75% consider, <65% avoid
+- **Manual Refresh**: Added refresh button for AI predictions while maintaining 30-minute stability
+- **Live Price Feed**: Stock prices now update automatically without manual page refresh needed
+- **Professional Trading Logic**: System accurately predicts both BUY and SELL signals with institutional algorithms
+- **Market Close Forecasting**: Stable predictions for profitable buy-at-open/sell-at-close strategies
+- **Signal Analysis**: Tracks bullish vs bearish signals separately for balanced recommendations
 
 ## User Preferences
 

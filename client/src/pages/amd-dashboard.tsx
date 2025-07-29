@@ -30,8 +30,9 @@ export default function AmdDashboard() {
 
   const { data: dashboardData, isLoading, error } = useQuery<AmdDashboardData>({
     queryKey: ['/api/amd/dashboard'],
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
-    staleTime: 1000, // Consider data stale after 1 second
+    refetchInterval: 2000, // Refresh every 2 seconds for real-time price updates
+    staleTime: 500, // Consider data stale after 0.5 seconds
+    refetchIntervalInBackground: true, // Keep updating even when tab is not active
   });
 
   const refreshMutation = useMutation({
