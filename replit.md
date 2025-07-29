@@ -1,8 +1,8 @@
-# ClassConnect Application
+# Tesla Stock Trading Assistant
 
 ## Overview
 
-ClassConnect is a full-stack web application for discovering and booking local classes and workshops. It features a React frontend with a Node.js/Express backend, using PostgreSQL for data persistence and Drizzle ORM for database management. The application provides real-time class availability, filtering capabilities, and includes features like live chat support.
+Tesla Stock Trading Assistant is an advanced AI-powered financial analysis platform that provides comprehensive Tesla (TSLA) stock analysis, real-time data feeds, AI-driven predictions, and trading recommendations. The system integrates multiple data sources including Alpha Vantage, Finnhub, Twitter API, and news feeds to deliver actionable insights with 5-day price forecasts and intelligent buy/sell recommendations.
 
 ## User Preferences
 
