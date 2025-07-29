@@ -37,7 +37,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Brain className="h-5 w-5 text-blue-400" />
-            AI Prediction Analysis
+            AI 1-Day Prediction
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -108,7 +108,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
             <div className="text-2xl font-bold text-white">${currentPrice.toFixed(2)}</div>
           </div>
           <div className="bg-gray-700/50 rounded-lg p-4">
-            <div className="text-sm text-gray-400 mb-1">5-Day Prediction</div>
+            <div className="text-sm text-gray-400 mb-1">1-Day Prediction</div>
             <div className={`text-2xl font-bold flex items-center gap-2 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
               ${predictedPrice.toFixed(2)}
               {isPositive ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
@@ -163,7 +163,7 @@ export function PredictionPanel({ prediction }: PredictionPanelProps) {
         {/* Model Info */}
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>Model: {prediction.modelUsed}</span>
-          <span>{prediction.predictionDays}-day forecast</span>
+          <span>1-day forecast</span>
         </div>
       </CardContent>
     </Card>

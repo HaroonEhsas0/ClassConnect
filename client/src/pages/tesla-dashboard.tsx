@@ -68,12 +68,47 @@ export default function TeslaDashboard() {
               Failed to load Tesla data. Please try refreshing or contact support.
             </AlertDescription>
           </Alert>
+          <div className="text-center mt-6">
+            <Button
+              onClick={() => refreshMutation.mutate()}
+              disabled={refreshMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+              Retry Loading Data
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   const { currentPrice, technicalIndicators, latestPrediction, recentInsiderTrades, recentTweets, recentNews } = dashboardData;
+
+  // Show loading state if critical data is missing
+  if (!currentPrice) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <div className="animate-spin text-6xl mb-4">⚡</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Tesla Prediction System</h2>
+            <p className="text-gray-300">Loading Tesla stock data...</p>
+            <div className="mt-6">
+              <Button
+                onClick={() => refreshMutation.mutate()}
+                disabled={refreshMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
+                Refresh Data
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getRecommendationIcon = (recommendation: string) => {
     switch (recommendation) {
@@ -160,7 +195,7 @@ export default function TeslaDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="text-white flex items-center">
                 <Target className="h-5 w-5 mr-2" />
-                AI Prediction (5 Days)
+                AI Prediction (1 Day)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -174,6 +209,10 @@ export default function TeslaDashboard() {
                       <Badge className={`${getRiskBadgeColor(latestPrediction.riskLevel)} text-white`}>
                         {latestPrediction.riskLevel.toUpperCase()} RISK
                       </Badge>
+                    </div>
+                    <div className="text-xs text-green-400 mt-1">
+                      vs Current: ${parseFloat(currentPrice.price).toFixed(2)} 
+                      ({((parseFloat(latestPrediction.predictedPrice) - parseFloat(currentPrice.price)) / parseFloat(currentPrice.price) * 100).toFixed(2)}%)
                     </div>
                     <div className="text-sm text-gray-400">
                       Confidence: {latestPrediction.confidence}%
