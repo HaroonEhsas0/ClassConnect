@@ -209,22 +209,54 @@ export class ApiService {
         }
       }
 
-      // News sentiment analysis
+      // Enhanced real-time sentiment analysis with momentum detection
       if (recentNews && recentNews.length > 0) {
         const avgSentiment = recentNews.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNews.length;
         const relevantNewsCount = recentNews.filter(news => parseFloat(news.relevanceScore || '0') > 6).length;
         
-        if (avgSentiment > 0.3) {
-          score += 8;
-          reasons.push(`Positive news sentiment (${avgSentiment.toFixed(2)})`);
-        } else if (avgSentiment < -0.3) {
+        // Real-time sentiment scoring (-1 to +1 scale)
+        const sentimentScore = Math.max(-1, Math.min(1, avgSentiment));
+        
+        // Recent news momentum (last 12 hours)
+        const recentHours = 12;
+        const cutoffTime = new Date(Date.now() - recentHours * 60 * 60 * 1000);
+        const recentNewsOnly = recentNews.filter(news => new Date(news.publishedAt) > cutoffTime);
+        const recentSentiment = recentNewsOnly.length > 0 ? 
+          recentNewsOnly.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNewsOnly.length : 0;
+        
+        // Enhanced sentiment impact based on magnitude and recency
+        if (sentimentScore > 0.4) {
+          score += 10;
+          bullishSignals++;
+          reasons.push(`Strong positive sentiment (${sentimentScore.toFixed(2)})`);
+        } else if (sentimentScore > 0.2) {
+          score += 6;
+          bullishSignals++;
+          reasons.push(`Positive sentiment momentum (${sentimentScore.toFixed(2)})`);
+        } else if (sentimentScore < -0.4) {
+          score -= 10;
+          bearishSignals++;
+          reasons.push(`Strong negative sentiment (${sentimentScore.toFixed(2)})`);
+        } else if (sentimentScore < -0.2) {
           score -= 6;
-          reasons.push(`Negative news sentiment (${avgSentiment.toFixed(2)})`);
+          bearishSignals++;
+          reasons.push(`Negative sentiment pressure (${sentimentScore.toFixed(2)})`);
         }
         
-        if (relevantNewsCount > 3) {
-          score += 3;
+        // Recent news momentum impact
+        if (recentSentiment < -0.3 && recentNewsOnly.length >= 2) {
+          score -= 8;
+          bearishSignals++;
+          reasons.push(`Negative news momentum in last ${recentHours}h`);
+        }
+        
+        // High news activity multiplier
+        if (relevantNewsCount > 4) {
+          score += 4;
           reasons.push(`High news activity (${relevantNewsCount} relevant articles)`);
+        } else if (relevantNewsCount > 2) {
+          score += 2;
+          reasons.push(`Moderate news activity (${relevantNewsCount} articles)`);
         }
       }
 
@@ -285,6 +317,34 @@ export class ApiService {
       } else {
         recommendation = 'strong_sell';
         riskLevel = 'high';
+      }
+      
+      // Advanced trend filtering with RSI & news momentum for high-confidence signals
+      const rsi = parseFloat(technicalIndicators?.rsi || '50');
+      const recentHours = 12;
+      const cutoffTime = new Date(Date.now() - recentHours * 60 * 60 * 1000);
+      const recentNewsOnly = recentNews?.filter(news => new Date(news.publishedAt) > cutoffTime) || [];
+      const recentSentiment = recentNewsOnly.length > 0 ? 
+        recentNewsOnly.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNewsOnly.length : 0;
+      
+      // Check for 3-day uptrend (simulated)
+      const priceChangePercent = parseFloat(currentPrice.changePercent || '0');
+      const hasUptrend = priceChangePercent > 1; // Simplified uptrend check
+      
+      // "Dip incoming" alert conditions: RSI > 85 + Negative sentiment + Uptrend
+      if (rsi > 85 && recentSentiment < -0.2 && hasUptrend) {
+        score -= 20;
+        bearishSignals += 3;
+        reasons.push(`🚨 DIP INCOMING ALERT: RSI overbought (${rsi.toFixed(1)}) + negative sentiment + uptrend = reversal risk`);
+        recommendation = 'strong_sell';
+        riskLevel = 'high';
+      }
+      
+      // High-confidence buy signal: RSI < 25 + Positive sentiment + Recent dip
+      else if (rsi < 25 && recentSentiment > 0.2 && priceChangePercent < -1) {
+        score += 15;
+        bullishSignals += 2;
+        reasons.push(`🚀 HIGH-CONFIDENCE BUY: RSI oversold (${rsi.toFixed(1)}) + positive sentiment + dip opportunity`);
       }
       
       // Additional safety check: if too many bearish signals, force SELL

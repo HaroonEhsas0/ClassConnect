@@ -19,6 +19,11 @@ Professional-grade AMD Stock Prediction System with institutional-level algorith
 - **STABLE PREDICTION CACHING**: Predictions cached for 30 minutes to prevent fluctuating recommendations  
 - **PRICE RANGE PREDICTIONS**: Enhanced accuracy with realistic price ranges (e.g., "$182-$185") instead of exact prices
 - **ADVANCED AI IMPROVEMENTS**: Volatility-based range calculation, enhanced reasoning, better accuracy modeling
+- **REAL-TIME SENTIMENT SCORING**: Enhanced news sentiment analysis with -1 to +1 scale and 12-hour momentum tracking
+- **VOLUME SURGE DETECTION**: Advanced volume analysis comparing current volume to 1-hour and daily averages (150% threshold)
+- **TREND FILTERING SYSTEM**: RSI + sentiment + trend analysis for "Dip Incoming" alerts and high-confidence signals
+- **BACKTESTING CAPABILITIES**: Historical performance analysis with accuracy %, win rate, deviation metrics, and Sharpe ratio
+- **MODEL PERFORMANCE METRICS**: Real-time model accuracy, confidence calibration, and prediction stability tracking
 
 ## User Preferences
 

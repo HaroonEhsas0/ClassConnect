@@ -19,6 +19,7 @@ import { useState } from 'react';
 
 import { PriceChart } from '@/components/tesla/price-chart';
 import { AdvancedPredictionPanel } from '@/components/advanced-prediction-panel';
+import AdvancedAnalyticsPanel from '@/components/advanced-analytics-panel';
 
 // News functionality removed
 import { InsiderTrades } from '@/components/tesla/insider-trades';
@@ -352,6 +353,11 @@ export default function AmdDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PriceChart />
           {/* News functionality removed per user request */}
+        </div>
+
+        {/* Advanced Analytics Panel */}
+        <div className="mt-6">
+          <AdvancedAnalyticsPanel />
         </div>
 
         {/* Insider Trades Detail */}

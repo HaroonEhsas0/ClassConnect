@@ -7,6 +7,7 @@ import { ApiService } from "./api-services";
 import { CronService } from "./cron-service";
 import { AdvancedAIPredictor } from "./advanced-ai-predictor";
 import { MarketClosePredictor } from "./market-close-predictor";
+import BacktestingService from "./backtesting-service";
 import { z } from 'zod';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -149,6 +150,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+
+  // Backtesting and model evaluation endpoints
+  app.get('/api/amd/backtest/:days?', async (req, res) => {
+    try {
+      const days = parseInt(req.params.days || '30');
+      const backtestResults = await BacktestingService.runBacktest(days);
+      res.json(backtestResults);
+    } catch (error) {
+      console.error('Backtesting error:', error);
+      res.status(500).json({ error: 'Failed to run backtesting analysis' });
+    }
+  });
+
+  app.get('/api/amd/model-performance', async (req, res) => {
+    try {
+      const performance = await BacktestingService.evaluateModelPerformance();
+      res.json(performance);
+    } catch (error) {
+      console.error('Model evaluation error:', error);
+      res.status(500).json({ error: 'Failed to evaluate model performance' });
+    }
+  });
 
   // Manual data refresh endpoint
   app.post('/api/amd/refresh', async (req, res) => {
