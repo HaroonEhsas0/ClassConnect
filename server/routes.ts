@@ -280,6 +280,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NEW: Generate TIGHT prediction with actionable trading signals
+  app.post('/api/amd/tight-prediction', async (req, res) => {
+    try {
+      console.log('🎯 Generating tight prediction with directional bias...');
+      const { AdvancedAiPredictor } = await import('./advanced-ai-predictor');
+      
+      const tightPrediction = await AdvancedAiPredictor.generateTightPrediction();
+      if (!tightPrediction) {
+        return res.status(404).json({ error: 'Unable to generate tight prediction - insufficient data' });
+      }
+
+      // Store the tight prediction
+      await AdvancedAiPredictor.storeTightPrediction(tightPrediction);
+      
+      res.json({
+        success: true,
+        prediction: tightPrediction,
+        message: `Tight ${tightPrediction.primarySignal} prediction generated: $${tightPrediction.priceRangeLow}-$${tightPrediction.priceRangeHigh}`
+      });
+    } catch (error) {
+      console.error('Tight prediction error:', error);
+      res.status(500).json({ error: 'Failed to generate tight prediction' });
+    }
+  });
+
   // Tesla endpoints for legacy chart components - using AMD data
   app.get('/api/tesla/price/history/:hours', async (req, res) => {
     try {

@@ -484,34 +484,43 @@ export class ApiService {
 
       console.log('🤖 Generating OpenAI-powered prediction analysis...');
 
-      // Create comprehensive analysis prompt with real data
+      // Create comprehensive analysis prompt with real data - ENHANCED FOR ACTIONABLE TRADING
       const analysisPrompt = `
-You are an expert AMD stock analyst. Analyze the following REAL market data and provide a precise 1-day price prediction:
+You are an expert AMD stock analyst providing ACTIONABLE trading signals. Current price: $${currentPrice.price}
 
-CURRENT DATA:
-- Current Price: $${currentPrice.price}
-- Change: ${currentPrice.changePercent}%
+TECHNICAL ANALYSIS:
+- RSI: ${technicalIndicators?.rsi || 'N/A'} (>70=overbought, <30=oversold)
+- MACD: ${technicalIndicators?.macd || 'N/A'} vs Signal: ${technicalIndicators?.macdSignal || 'N/A'}
+- Price vs SMA20: $${currentPrice.price} vs ${technicalIndicators?.sma20 || 'N/A'}
+- Today's Change: ${currentPrice.changePercent}%
 - Volume: ${currentPrice.volume.toLocaleString()}
 
-TECHNICAL INDICATORS:
-- RSI: ${technicalIndicators?.rsi || 'N/A'}
-- MACD: ${technicalIndicators?.macd || 'N/A'}
-- MACD Signal: ${technicalIndicators?.macdSignal || 'N/A'}
-- SMA 20: ${technicalIndicators?.sma20 || 'N/A'}
-- SMA 50: ${technicalIndicators?.sma50 || 'N/A'}
+MARKET SENTIMENT: ${recentNews?.slice(0, 3).map(n => n.headline).join('; ') || 'Limited news'}
 
-NEWS SENTIMENT:
-${recentNews?.slice(0, 5).map(n => `- ${n.headline} (Sentiment: ${n.sentimentScore})`).join('\n') || 'No recent news available'}
+REQUIREMENTS FOR NARROW RANGES:
+- If BULLISH signals dominate: Range should be ABOVE current price (e.g., $179.20-$181.50)
+- If BEARISH signals dominate: Range should be BELOW current price (e.g., $176.80-$178.50)  
+- If NEUTRAL: Small range around current price (±$1.50 max)
+- Maximum range width: $3.00
+- Minimum range width: $1.20
 
-Provide ONLY valid JSON response with PRICE RANGE (not exact price):
+TRADING SIGNALS:
+- STRONG_BUY: Clear bullish momentum, range 85%+ above current
+- BUY: Moderate bullish, range 60%+ above current  
+- HOLD: Mixed signals, tight range around current price
+- SELL: Moderate bearish, range 60%+ below current
+- STRONG_SELL: Clear bearish momentum, range 85%+ below current
+
+Provide ONLY valid JSON with DIRECTIONAL BIAS:
 {
   "priceRangeLow": number,
   "priceRangeHigh": number,
-  "confidence": 65-95,
-  "aiRating": 65-95,
-  "recommendation": "strong_buy|buy|hold|sell|strong_sell",
+  "confidence": 70-95,
+  "aiRating": 70-95,
+  "recommendation": "strong_buy|buy|hold|sell|strong_sell", 
   "riskLevel": "low|medium|high",
-  "reasoning": "detailed explanation focusing on the 1-day price range prediction"
+  "primarySignal": "bullish|bearish|neutral",
+  "reasoning": "specific technical justification for the directional bias and tight range"
 }`;
 
       // Call OpenAI API with correct endpoint
@@ -542,20 +551,26 @@ Provide ONLY valid JSON response with PRICE RANGE (not exact price):
 
       const aiPrediction = JSON.parse(aiResponse.data.choices[0].message.content);
       
-      // Store advanced prediction with price range
+      // Store enhanced prediction with tight ranges and directional bias
+      const rangeWidth = aiPrediction.priceRangeHigh - aiPrediction.priceRangeLow;
+      const currentPriceFloat = parseFloat(currentPrice.price);
+      const rangeMidpoint = (aiPrediction.priceRangeLow + aiPrediction.priceRangeHigh) / 2;
+      const directionBias = rangeMidpoint > currentPriceFloat ? 'BULLISH' : 'BEARISH';
+      
       const advancedPredictionData = {
         symbol: 'AMD',
         currentPrice: currentPrice.price,
-        predictedPrice: `${aiPrediction.priceRangeLow}-${aiPrediction.priceRangeHigh}`, // Store as range
+        predictedPrice: `${aiPrediction.priceRangeLow.toFixed(2)}-${aiPrediction.priceRangeHigh.toFixed(2)}`, // Tight range
         priceRangeLow: aiPrediction.priceRangeLow.toFixed(2),
         priceRangeHigh: aiPrediction.priceRangeHigh.toFixed(2),
         predictionDays: 1,
         confidence: aiPrediction.confidence.toString(),
-        aiRating: parseInt(aiPrediction.confidence), // Use same confidence for both
+        aiRating: parseInt(aiPrediction.confidence),
         recommendation: aiPrediction.recommendation,
         riskLevel: aiPrediction.riskLevel,
-        reasoning: `Range: $${aiPrediction.priceRangeLow.toFixed(2)}-$${aiPrediction.priceRangeHigh.toFixed(2)}. ${aiPrediction.reasoning}`,
-        modelUsed: 'gpt-3.5-turbo-range',
+        reasoning: `${directionBias} signal: ${aiPrediction.reasoning}. Range width: $${rangeWidth.toFixed(2)}`,
+        modelUsed: 'gpt-3.5-turbo-directional',
+        primarySignal: aiPrediction.primarySignal || directionBias.toLowerCase(),
       };
 
       await teslaStorage.insertAiPrediction(advancedPredictionData);
