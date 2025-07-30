@@ -22,7 +22,7 @@ export class ApiService {
     }
   }
 
-  // Enhanced Real-Time AI Prediction Engine with Stable Caching
+  // Professional Real-Time AI Prediction Engine with Advanced Analytics
   static async generateAiPrediction(): Promise<void> {
     const startTime = Date.now();
     const cache = PredictionCache.getInstance();
@@ -50,268 +50,260 @@ export class ApiService {
 
       console.log('🧠 Generating enhanced AI prediction with live market data...');
 
-      // Real-time prediction algorithm using current market conditions  
-      let score = 0; // Start at 0 for unbiased analysis
+      // Professional prediction algorithm with weighted scoring (0-100 scale)
+      let score = 50; // Start at neutral (50) for balanced analysis
       const currentPriceNum = parseFloat(currentPrice.price);
       const reasons: string[] = [];
       
-      // Track bullish vs bearish signals separately
-      let bullishSignals = 0;
-      let bearishSignals = 0;
+      // Track analysis components for transparency
+      const analysis = {
+        technical: { score: 0, weight: 0.40, signals: [] as string[] },
+        momentum: { score: 0, weight: 0.25, signals: [] as string[] },
+        sentiment: { score: 0, weight: 0.20, signals: [] as string[] },
+        volume: { score: 0, weight: 0.15, signals: [] as string[] }
+      };
       
-      // Price momentum analysis (enhanced with aggressive bearish detection)
-      const changePercent = parseFloat(currentPrice.changePercent);
-      if (Math.abs(changePercent) > 0) {
-        if (changePercent > 3) {
-          score += 20;
-          bullishSignals++;
-          reasons.push(`Very strong bullish momentum (+${changePercent.toFixed(2)}%)`);
-        } else if (changePercent > 1.5) {
-          score += 12;
-          bullishSignals++;
-          reasons.push(`Strong bullish momentum (+${changePercent.toFixed(2)}%)`);
-        } else if (changePercent > 0.5) {
-          score += 6;
-          bullishSignals++;
-          reasons.push(`Positive price momentum (+${changePercent.toFixed(2)}%)`);
-        } else if (changePercent < -3) {
-          score -= 25;
-          bearishSignals++;
-          reasons.push(`Very strong bearish momentum (${changePercent.toFixed(2)}%)`);
-        } else if (changePercent < -1.5) {
-          score -= 15;
-          bearishSignals++;
-          reasons.push(`Strong bearish momentum (${changePercent.toFixed(2)}%)`);
-        } else if (changePercent < -0.5) {
-          score -= 8;
-          bearishSignals++;
-          reasons.push(`Negative price action (${changePercent.toFixed(2)}%)`);
-        }
-      }
-
-      // Volume analysis with bearish signals
-      const volume = currentPrice.volume;
-      if (volume > 60000000) { // Very high volume threshold for AMD
-        if (changePercent > 0) {
-          score += 8;
-          bullishSignals++;
-          reasons.push(`Very high volume on green day (${(volume/1000000).toFixed(1)}M shares)`);
-        } else {
-          score -= 12;
-          bearishSignals++;
-          reasons.push(`Very high volume on red day - selling pressure (${(volume/1000000).toFixed(1)}M shares)`);
-        }
-      } else if (volume > 40000000) {
-        if (changePercent > 0) {
-          score += 5;
-          bullishSignals++;
-          reasons.push(`High volume supports upward move (${(volume/1000000).toFixed(1)}M shares)`);
-        } else {
-          score -= 8;
-          bearishSignals++;
-          reasons.push(`High volume on decline signals weakness (${(volume/1000000).toFixed(1)}M shares)`);
-        }
-      } else if (volume < 15000000) {
-        score -= 5;
-        reasons.push(`Low volume suggests weak conviction (${(volume/1000000).toFixed(1)}M shares)`);
-      }
-
-      // Technical indicators analysis (enhanced with strong bearish detection)
+      // 1. TECHNICAL ANALYSIS (40% weight) - Most important for short-term predictions
       if (technicalIndicators?.rsi) {
         const rsi = parseFloat(technicalIndicators.rsi);
-        if (rsi > 80) {
-          score -= 20;
-          bearishSignals++;
-          reasons.push(`Extremely overbought - strong SELL signal (RSI: ${rsi.toFixed(1)})`);
+        if (rsi > 85) {
+          analysis.technical.score -= 25;
+          analysis.technical.signals.push(`Extreme overbought RSI (${rsi.toFixed(1)}) - high reversal risk`);
         } else if (rsi > 75) {
-          score -= 15;
-          bearishSignals++;
-          reasons.push(`Severely overbought (RSI: ${rsi.toFixed(1)})`);
+          analysis.technical.score -= 15;
+          analysis.technical.signals.push(`Overbought RSI (${rsi.toFixed(1)}) - caution advised`);
         } else if (rsi > 70) {
-          score -= 8;
-          bearishSignals++;
-          reasons.push(`Overbought conditions (RSI: ${rsi.toFixed(1)})`);
-        } else if (rsi < 20) {
-          score += 25;
-          bullishSignals++;
-          reasons.push(`Extremely oversold - strong BUY opportunity (RSI: ${rsi.toFixed(1)})`);
+          analysis.technical.score -= 8;
+          analysis.technical.signals.push(`RSI trending overbought (${rsi.toFixed(1)})`);
+        } else if (rsi < 15) {
+          analysis.technical.score += 25;
+          analysis.technical.signals.push(`Extreme oversold RSI (${rsi.toFixed(1)}) - strong buy signal`);
         } else if (rsi < 25) {
-          score += 15;
-          bullishSignals++;
-          reasons.push(`Oversold opportunity (RSI: ${rsi.toFixed(1)})`);
+          analysis.technical.score += 15;
+          analysis.technical.signals.push(`Oversold RSI (${rsi.toFixed(1)}) - potential upside`);
         } else if (rsi < 30) {
-          score += 8;
-          bullishSignals++;
-          reasons.push(`Oversold conditions (RSI: ${rsi.toFixed(1)})`);
-        } else if (rsi > 50 && rsi <= 60) {
-          score += 3;
-          bullishSignals++;
-          reasons.push(`Bullish momentum (RSI: ${rsi.toFixed(1)})`);
+          analysis.technical.score += 8;
+          analysis.technical.signals.push(`RSI approaching oversold (${rsi.toFixed(1)})`);
+        } else if (rsi >= 45 && rsi <= 55) {
+          analysis.technical.score += 3;
+          analysis.technical.signals.push(`Neutral RSI (${rsi.toFixed(1)}) - balanced momentum`);
         }
       }
 
+      // MACD Analysis
       if (technicalIndicators?.macd && technicalIndicators?.macdSignal) {
         const macd = parseFloat(technicalIndicators.macd);
         const signal = parseFloat(technicalIndicators.macdSignal);
-        const difference = macd - signal;
+        const divergence = macd - signal;
         
-        if (difference > 0.5) {
-          score += 10;
-          reasons.push('Strong MACD bullish crossover');
-        } else if (difference > 0) {
-          score += 5;
-          reasons.push('MACD above signal line');
-        } else if (difference < -0.5) {
-          score -= 8;
-          reasons.push('MACD bearish crossover');
-        } else {
-          score -= 3;
-          reasons.push('MACD below signal line');
+        if (divergence > 1.0) {
+          analysis.technical.score += 15;
+          analysis.technical.signals.push(`Strong MACD bullish crossover (${divergence.toFixed(3)})`);
+        } else if (divergence > 0.3) {
+          analysis.technical.score += 8;
+          analysis.technical.signals.push(`MACD above signal line (${divergence.toFixed(3)})`);
+        } else if (divergence < -1.0) {
+          analysis.technical.score -= 15;
+          analysis.technical.signals.push(`Strong MACD bearish crossover (${divergence.toFixed(3)})`);
+        } else if (divergence < -0.3) {
+          analysis.technical.score -= 8;
+          analysis.technical.signals.push(`MACD below signal line (${divergence.toFixed(3)})`);
         }
       }
 
-      // Moving average analysis
+      // Moving Average Analysis 
       if (technicalIndicators?.sma20 && technicalIndicators?.sma50) {
         const sma20 = parseFloat(technicalIndicators.sma20);
         const sma50 = parseFloat(technicalIndicators.sma50);
+        const priceVsSMA20 = ((currentPriceNum - sma20) / sma20) * 100;
+        const smaAlignment = ((sma20 - sma50) / sma50) * 100;
         
-        if (currentPriceNum > sma20 && sma20 > sma50) {
-          score += 8;
-          reasons.push('Price above both SMAs - bullish trend');
-        } else if (currentPriceNum < sma20 && sma20 < sma50) {
-          score -= 6;
-          reasons.push('Price below both SMAs - bearish trend');
+        if (currentPriceNum > sma20 && sma20 > sma50 && priceVsSMA20 > 2) {
+          analysis.technical.score += 12;
+          analysis.technical.signals.push(`Strong uptrend: Price ${priceVsSMA20.toFixed(1)}% above SMA20`);
+        } else if (currentPriceNum < sma20 && sma20 < sma50 && priceVsSMA20 < -2) {
+          analysis.technical.score -= 12;
+          analysis.technical.signals.push(`Strong downtrend: Price ${Math.abs(priceVsSMA20).toFixed(1)}% below SMA20`);
+        } else if (Math.abs(smaAlignment) < 0.5) {
+          analysis.technical.signals.push(`Sideways trend: SMAs converging`);
         }
       }
 
-      // Price history volatility and trend analysis
-      if (priceHistory && priceHistory.length > 5) {
-        const recentPrices = priceHistory.slice(0, 5).map(p => parseFloat(p.price));
-        const avgPrice = recentPrices.reduce((sum, price) => sum + price, 0) / recentPrices.length;
-        const volatility = Math.sqrt(recentPrices.reduce((sum, price) => sum + Math.pow(price - avgPrice, 2), 0) / recentPrices.length);
+      // 2. MOMENTUM ANALYSIS (25% weight)
+      const changePercent = parseFloat(currentPrice.changePercent);
+      if (changePercent > 4) {
+        analysis.momentum.score += 25;
+        analysis.momentum.signals.push(`Exceptional bullish momentum (+${changePercent.toFixed(2)}%)`);
+      } else if (changePercent > 2) {
+        analysis.momentum.score += 15;
+        analysis.momentum.signals.push(`Strong positive momentum (+${changePercent.toFixed(2)}%)`);
+      } else if (changePercent > 1) {
+        analysis.momentum.score += 8;
+        analysis.momentum.signals.push(`Positive momentum (+${changePercent.toFixed(2)}%)`);
+      } else if (changePercent < -4) {
+        analysis.momentum.score -= 25;
+        analysis.momentum.signals.push(`Sharp decline momentum (${changePercent.toFixed(2)}%)`);
+      } else if (changePercent < -2) {
+        analysis.momentum.score -= 15;
+        analysis.momentum.signals.push(`Negative momentum (${changePercent.toFixed(2)}%)`);
+      } else if (changePercent < -1) {
+        analysis.momentum.score -= 8;
+        analysis.momentum.signals.push(`Mild downward pressure (${changePercent.toFixed(2)}%)`);
+      }
+
+      // Price trend over recent history
+      if (priceHistory && priceHistory.length >= 6) {
+        const recentPrices = priceHistory.slice(0, 6).map(p => parseFloat(p.price));
+        const trend = this.calculateTrendStrength(recentPrices);
         
-        if (volatility > 5) {
-          score -= 5;
-          reasons.push('High volatility increases uncertainty');
-        } else if (volatility < 2) {
-          score += 3;
-          reasons.push('Low volatility suggests stability');
-        }
-        
-        // Trend analysis
-        const trend = currentPriceNum - recentPrices[recentPrices.length - 1];
-        if (trend > 2) {
-          score += 6;
-          reasons.push('Strong upward price trend');
-        } else if (trend < -2) {
-          score -= 4;
-          reasons.push('Downward price trend');
+        if (trend > 0.7) {
+          analysis.momentum.score += 10;
+          analysis.momentum.signals.push(`Strong upward price trend detected`);
+        } else if (trend < -0.7) {
+          analysis.momentum.score -= 10;
+          analysis.momentum.signals.push(`Strong downward price trend detected`);
         }
       }
 
-      // Enhanced real-time sentiment analysis with momentum detection
+      // 3. VOLUME ANALYSIS (15% weight)
+      const volume = currentPrice.volume || 0;
+      const volumeInMillions = volume / 1000000;
+      
+      if (volume > 80000000) { // Very high volume for AMD
+        if (changePercent > 0) {
+          analysis.volume.score += 15;
+          analysis.volume.signals.push(`Exceptional volume on gains (${volumeInMillions.toFixed(1)}M shares)`);
+        } else {
+          analysis.volume.score -= 18;
+          analysis.volume.signals.push(`Heavy selling pressure (${volumeInMillions.toFixed(1)}M shares)`);
+        }
+      } else if (volume > 50000000) {
+        if (changePercent > 0) {
+          analysis.volume.score += 10;
+          analysis.volume.signals.push(`High volume supports move (${volumeInMillions.toFixed(1)}M shares)`);
+        } else {
+          analysis.volume.score -= 12;
+          analysis.volume.signals.push(`High volume on decline (${volumeInMillions.toFixed(1)}M shares)`);
+        }
+      } else if (volume < 20000000 && volume > 0) {
+        analysis.volume.score -= 8;
+        analysis.volume.signals.push(`Low volume indicates weak conviction (${volumeInMillions.toFixed(1)}M shares)`);
+      } else if (volume === 0) {
+        analysis.volume.signals.push(`Volume data unavailable`);
+      } else {
+        analysis.volume.signals.push(`Normal volume (${volumeInMillions.toFixed(1)}M shares)`);
+      }
+
+      // 4. SENTIMENT ANALYSIS (20% weight)
       if (recentNews && recentNews.length > 0) {
         const avgSentiment = recentNews.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNews.length;
         const relevantNewsCount = recentNews.filter(news => parseFloat(news.relevanceScore || '0') > 6).length;
         
-        // Real-time sentiment scoring (-1 to +1 scale)
+        // Normalize sentiment score (-1 to +1 scale)
         const sentimentScore = Math.max(-1, Math.min(1, avgSentiment));
         
-        // Recent news momentum (last 12 hours)
-        const recentHours = 12;
-        const cutoffTime = new Date(Date.now() - recentHours * 60 * 60 * 1000);
+        // Recent news momentum (last 8 hours for more immediate impact)
+        const cutoffTime = new Date(Date.now() - 8 * 60 * 60 * 1000);
         const recentNewsOnly = recentNews.filter(news => new Date(news.publishedAt) > cutoffTime);
         const recentSentiment = recentNewsOnly.length > 0 ? 
           recentNewsOnly.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNewsOnly.length : 0;
         
-        // Enhanced sentiment impact based on magnitude and recency
-        if (sentimentScore > 0.4) {
-          score += 10;
-          bullishSignals++;
-          reasons.push(`Strong positive sentiment (${sentimentScore.toFixed(2)})`);
-        } else if (sentimentScore > 0.2) {
-          score += 6;
-          bullishSignals++;
-          reasons.push(`Positive sentiment momentum (${sentimentScore.toFixed(2)})`);
-        } else if (sentimentScore < -0.4) {
-          score -= 10;
-          bearishSignals++;
-          reasons.push(`Strong negative sentiment (${sentimentScore.toFixed(2)})`);
-        } else if (sentimentScore < -0.2) {
-          score -= 6;
-          bearishSignals++;
-          reasons.push(`Negative sentiment pressure (${sentimentScore.toFixed(2)})`);
+        if (sentimentScore > 0.5) {
+          analysis.sentiment.score += 20;
+          analysis.sentiment.signals.push(`Very positive news sentiment (${sentimentScore.toFixed(2)})`);
+        } else if (sentimentScore > 0.25) {
+          analysis.sentiment.score += 12;
+          analysis.sentiment.signals.push(`Positive news sentiment (${sentimentScore.toFixed(2)})`);
+        } else if (sentimentScore < -0.5) {
+          analysis.sentiment.score -= 20;
+          analysis.sentiment.signals.push(`Very negative news sentiment (${sentimentScore.toFixed(2)})`);
+        } else if (sentimentScore < -0.25) {
+          analysis.sentiment.score -= 12;
+          analysis.sentiment.signals.push(`Negative news sentiment (${sentimentScore.toFixed(2)})`);
         }
         
-        // Recent news momentum impact
-        if (recentSentiment < -0.3 && recentNewsOnly.length >= 2) {
-          score -= 8;
-          bearishSignals++;
-          reasons.push(`Negative news momentum in last ${recentHours}h`);
+        // News momentum boost/penalty
+        if (recentSentiment > 0.3 && recentNewsOnly.length >= 2) {
+          analysis.sentiment.score += 8;
+          analysis.sentiment.signals.push(`Strong positive news momentum (last 8h)`);
+        } else if (recentSentiment < -0.3 && recentNewsOnly.length >= 2) {
+          analysis.sentiment.score -= 8;
+          analysis.sentiment.signals.push(`Negative news momentum (last 8h)`);
         }
         
-        // High news activity multiplier
-        if (relevantNewsCount > 4) {
-          score += 4;
-          reasons.push(`High news activity (${relevantNewsCount} relevant articles)`);
+        // News activity factor
+        if (relevantNewsCount > 5) {
+          analysis.sentiment.score += 5;
+          analysis.sentiment.signals.push(`High news activity (${relevantNewsCount} relevant articles)`);
         } else if (relevantNewsCount > 2) {
-          score += 2;
-          reasons.push(`Moderate news activity (${relevantNewsCount} articles)`);
+          analysis.sentiment.score += 2;
+          analysis.sentiment.signals.push(`Moderate news activity (${relevantNewsCount} articles)`);
+        } else if (relevantNewsCount === 0) {
+          analysis.sentiment.signals.push(`No significant news events`);
         }
+      } else {
+        analysis.sentiment.signals.push(`No recent news data available`);
       }
 
-      // Market timing factors
+      // Calculate weighted final score
+      const weightedScore = (
+        analysis.technical.score * analysis.technical.weight +
+        analysis.momentum.score * analysis.momentum.weight +
+        analysis.sentiment.score * analysis.sentiment.weight +
+        analysis.volume.score * analysis.volume.weight
+      );
+      
+      // Normalize to 0-100 scale with 50 as neutral
+      score = Math.max(0, Math.min(100, 50 + weightedScore));
+      
+      // Professional market timing adjustments
       const currentHour = new Date().getHours();
       const currentDay = new Date().getDay();
       
-      if (currentDay >= 1 && currentDay <= 5) { // Weekday
-        if (currentHour >= 9 && currentHour <= 11) {
+      if (currentDay >= 1 && currentDay <= 5) { // Trading days
+        if (currentHour >= 9 && currentHour <= 10) {
           score += 2;
-          reasons.push('Market opening hours - higher activity');
+          reasons.push('Market opening volatility - increased opportunity');
         } else if (currentHour >= 15 && currentHour <= 16) {
           score += 1;
-          reasons.push('Power hour - increased trading');
+          reasons.push('Power hour - institutional activity peaks');
+        } else if (currentHour < 9 || currentHour > 16) {
+          score -= 3;
+          reasons.push('After-hours trading - reduced liquidity');
         }
       }
 
-      // Enhanced scoring with proper balance (scores can now be negative for strong SELL signals)
-      score = Math.max(-30, Math.min(100, score));
+      // Calculate sophisticated price prediction
+      const priceImpact = (score - 50) / 50; // -1 to +1 range
+      const baseVolatility = 0.025; // 2.5% base volatility for AMD
       
-      // Calculate predicted price RANGE with enhanced accuracy
-      const priceVariation = score / 100; // Convert to percentage (-30 to 100)
-      // Enhanced scaling to allow proper downward predictions
-      let centerPrice;
-      if (score < 0) {
-        // Strong bearish prediction - can predict significant drops
-        centerPrice = currentPriceNum * (1 + priceVariation * 0.025); // Larger variation for bearish signals
-      } else if (score < 40) {
-        // Mild bearish to neutral - small downward prediction
-        centerPrice = currentPriceNum * (1 + (score - 50) / 100 * 0.02);
-      } else {
-        // Bullish prediction
-        centerPrice = currentPriceNum * (1 + priceVariation * 0.018);
-      }
+      // Dynamic volatility based on market conditions
+      let volatilityMultiplier = 1.0;
+      if (volume > 60000000) volatilityMultiplier = 1.4;
+      else if (volume < 20000000) volatilityMultiplier = 0.7;
       
-      // Create realistic price range based on volatility and confidence
-      const volatilityFactor = Math.abs(score) < 20 ? 0.015 : Math.abs(score) > 70 ? 0.035 : 0.025;
+      const predictedChange = priceImpact * 0.03 * volatilityMultiplier; // Max 3% change
+      const centerPrice = currentPriceNum * (1 + predictedChange);
+      
+      // Create realistic price range
+      const volatilityFactor = baseVolatility * volatilityMultiplier;
       const rangeLow = centerPrice * (1 - volatilityFactor);
       const rangeHigh = centerPrice * (1 + volatilityFactor);
       
-      // Determine recommendation and risk level based on enhanced scoring
+      // Professional recommendation system
       let recommendation: string;
       let riskLevel: string;
       
-      // Enhanced thresholds for better SELL detection
-      if (score >= 80) {
+      if (score >= 85) {
         recommendation = 'strong_buy';
         riskLevel = 'medium';
-      } else if (score >= 60) {
+      } else if (score >= 70) {
         recommendation = 'buy';
-        riskLevel = 'medium';
-      } else if (score >= 40) {
+        riskLevel = 'low';
+      } else if (score >= 55) {
         recommendation = 'hold';
         riskLevel = 'low';
-      } else if (score >= 20) {
+      } else if (score >= 40) {
         recommendation = 'sell';
         riskLevel = 'medium';
       } else {
@@ -319,69 +311,84 @@ export class ApiService {
         riskLevel = 'high';
       }
       
-      // Advanced trend filtering with RSI & news momentum for high-confidence signals
+      // Advanced signal validation
       const rsi = parseFloat(technicalIndicators?.rsi || '50');
-      const recentHours = 12;
-      const cutoffTime = new Date(Date.now() - recentHours * 60 * 60 * 1000);
-      const recentNewsOnly = recentNews?.filter(news => new Date(news.publishedAt) > cutoffTime) || [];
-      const recentSentiment = recentNewsOnly.length > 0 ? 
-        recentNewsOnly.reduce((sum, news) => sum + parseFloat(news.sentimentScore || '0'), 0) / recentNewsOnly.length : 0;
-      
-      // Check for 3-day uptrend (simulated)
       const priceChangePercent = parseFloat(currentPrice.changePercent || '0');
-      const hasUptrend = priceChangePercent > 1; // Simplified uptrend check
       
-      // "Dip incoming" alert conditions: RSI > 85 + Negative sentiment + Uptrend
-      if (rsi > 85 && recentSentiment < -0.2 && hasUptrend) {
-        score -= 20;
-        bearishSignals += 3;
-        reasons.push(`🚨 DIP INCOMING ALERT: RSI overbought (${rsi.toFixed(1)}) + negative sentiment + uptrend = reversal risk`);
+      // Override for extreme conditions
+      if (rsi > 90 && priceChangePercent > 3 && score > 60) {
         recommendation = 'strong_sell';
         riskLevel = 'high';
+        score = Math.min(score, 25);
+        reasons.push('🚨 EXTREME OVERBOUGHT: High reversal probability');
+      } else if (rsi < 10 && priceChangePercent < -3 && score < 40) {
+        recommendation = 'strong_buy';
+        riskLevel = 'medium';
+        score = Math.max(score, 75);
+        reasons.push('🚀 EXTREME OVERSOLD: Strong recovery potential');
       }
+
+      // Compile comprehensive analysis reasoning
+      const allSignals = [
+        ...analysis.technical.signals,
+        ...analysis.momentum.signals,
+        ...analysis.sentiment.signals,
+        ...analysis.volume.signals
+      ];
       
-      // High-confidence buy signal: RSI < 25 + Positive sentiment + Recent dip
-      else if (rsi < 25 && recentSentiment > 0.2 && priceChangePercent < -1) {
-        score += 15;
-        bullishSignals += 2;
-        reasons.push(`🚀 HIGH-CONFIDENCE BUY: RSI oversold (${rsi.toFixed(1)}) + positive sentiment + dip opportunity`);
-      }
+      reasons.push(...allSignals);
       
-      // Additional safety check: if too many bearish signals, force SELL
-      if (bearishSignals > bullishSignals && bearishSignals >= 3) {
-        recommendation = bearishSignals >= 5 ? 'strong_sell' : 'sell';
-        riskLevel = 'high';
-        score = Math.min(score, 30); // Cap score when bearish signals dominate
-      }
+      // Calculate confidence based on signal strength and consistency
+      const signalStrength = Math.abs(score - 50); // 0-50 range
+      const confidence = Math.max(65, Math.min(95, 75 + signalStrength * 0.4));
       
       const predictionData = {
         symbol: 'AMD',
         currentPrice: currentPrice.price,
-        predictedPrice: `${rangeLow.toFixed(2)}-${rangeHigh.toFixed(2)}`, // Price range instead of exact
+        predictedPrice: `${rangeLow.toFixed(2)}-${rangeHigh.toFixed(2)}`,
         priceRangeLow: rangeLow.toFixed(2),
         priceRangeHigh: rangeHigh.toFixed(2),
         predictionDays: 1,
-        confidence: Math.max(60, Math.min(95, 70 + Math.abs(score))).toFixed(0),
-        aiRating: Math.max(60, Math.min(95, 70 + Math.abs(score))), // Use same confidence system
+        confidence: confidence.toFixed(0),
+        aiRating: Math.round(confidence),
         recommendation,
         riskLevel,
-        reasoning: reasons.length > 0 ? `Price range prediction: $${rangeLow.toFixed(2)} - $${rangeHigh.toFixed(2)}. ` + reasons.join('. ') + '. Real-time analysis based on current market conditions.' : `Price range prediction: $${rangeLow.toFixed(2)} - $${rangeHigh.toFixed(2)}. Real-time prediction based on technical analysis and market momentum`,
-        modelUsed: 'enhanced-realtime-v4-range',
+        reasoning: reasons.length > 0 ? 
+          `Price range prediction: $${rangeLow.toFixed(2)} - $${rangeHigh.toFixed(2)}. ${reasons.join('. ')}. Real-time analysis based on current market conditions.` : 
+          `Price range prediction: $${rangeLow.toFixed(2)} - $${rangeHigh.toFixed(2)}. Professional analysis using weighted technical, momentum, sentiment, and volume indicators.`,
+        modelUsed: 'professional-weighted-v5',
       };
 
       await teslaStorage.insertAiPrediction(predictionData);
-      await this.logApiCall('ai_engine', 'enhanced_prediction', true, Date.now() - startTime);
+      await this.logApiCall('ai_engine', 'professional_prediction', true, Date.now() - startTime);
       
       // Cache the stable prediction for 30 minutes
       cache.setCachedPrediction('AMD', predictionData);
       
-      const finalConfidence = Math.max(60, Math.min(95, 70 + Math.abs(score)));
-      console.log(`✅ Enhanced AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} | Range: $${rangeLow.toFixed(2)}-$${rangeHigh.toFixed(2)} (${finalConfidence}% confidence)`);
+      console.log(`✅ Professional AI Prediction: ${recommendation.replace('_', ' ').toUpperCase()} | Range: $${rangeLow.toFixed(2)}-$${rangeHigh.toFixed(2)} (${confidence.toFixed(0)}% confidence)`);
       
     } catch (error) {
-      await this.logApiCall('ai_engine', 'enhanced_prediction', false, Date.now() - startTime, (error as Error).message);
-      console.error('Enhanced AI Prediction error:', error);
+      await this.logApiCall('ai_engine', 'professional_prediction', false, Date.now() - startTime, (error as Error).message);
+      console.error('Professional AI Prediction error:', error);
     }
+  }
+
+  // Helper function to calculate trend strength
+  static calculateTrendStrength(prices: number[]): number {
+    if (prices.length < 3) return 0;
+    
+    let upMoves = 0;
+    let downMoves = 0;
+    
+    for (let i = 1; i < prices.length; i++) {
+      if (prices[i] > prices[i - 1]) upMoves++;
+      else if (prices[i] < prices[i - 1]) downMoves++;
+    }
+    
+    const totalMoves = upMoves + downMoves;
+    if (totalMoves === 0) return 0;
+    
+    return (upMoves - downMoves) / totalMoves; // Returns -1 to +1
   }
 
   // Advanced OpenAI-powered prediction analysis  
