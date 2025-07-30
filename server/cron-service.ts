@@ -9,14 +9,22 @@ export class CronService {
 
     // Update stock data every 1 minute for real-time pricing (9:30 AM - 4:00 PM ET, Mon-Fri)
     const stockDataJob = cron.schedule('* 9-16 * * 1-5', async () => {
-      console.log('🔄 Updating real-time stock data...');
+      console.log('🔄 Real-time AMD price update...');
       try {
-        await Promise.all([
-          ApiService.fetchStockData(),
-          ApiService.fetchFundamentalData()
-        ]);
+        // Only fetch price data frequently - fundamental data less often
+        await ApiService.fetchStockData();
       } catch (error) {
         console.error('Stock data update error:', error);
+      }
+    }, { timezone: 'America/New_York' });
+
+    // Update fundamental data only every 2 hours to prevent rate limiting
+    const fundamentalDataJob = cron.schedule('0 */2 9-16 * * 1-5', async () => {
+      console.log('🔄 Updating fundamental data (rate-limited)...');
+      try {
+        await ApiService.fetchFundamentalData();
+      } catch (error) {
+        console.error('Fundamental data update error:', error);
       }
     }, { timezone: 'America/New_York' });
 
@@ -74,37 +82,16 @@ export class CronService {
       }
     }, { timezone: 'America/New_York' });
 
-    // Real-time price updates every minute during market hours, every 2 minutes after hours
-    const realTimeJob = cron.schedule('*/1 * * * *', async () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      
-      // During market hours (9:30 AM - 4:00 PM ET, Mon-Fri): update every minute
-      const isMarketHours = day >= 1 && day <= 5 && hour >= 9 && hour <= 16;
-      
-      if (isMarketHours || now.getMinutes() % 2 === 0) { // Market hours: every minute, After hours: every 2 minutes
-        console.log('🔄 Real-time AMD price update...');
-        try {
-          await Promise.all([
-            ApiService.fetchStockData(),
-            ApiService.fetchFundamentalData()
-          ]);
-          console.log('✅ Real-time AMD price update completed');
-        } catch (error) {
-          console.error('Real-time update error:', error);
-        }
-      }
-    });
+    // Removed duplicate real-time job - now handled by separate scheduled jobs above
 
     // Store jobs for management
     this.jobs.set('stockData', stockDataJob);
+    this.jobs.set('fundamentalData', fundamentalDataJob);
     this.jobs.set('technicalIndicators', technicalIndicatorsJob);
     this.jobs.set('insiderTrades', insiderTradesJob);
     this.jobs.set('news', newsJob);
     this.jobs.set('predictions', predictionJob);
     this.jobs.set('anomalies', anomalyJob);
-    this.jobs.set('realTime', realTimeJob);
 
     // Start all jobs
     this.jobs.forEach((job, name) => {

@@ -4,7 +4,7 @@
 
 Professional-grade AMD Stock Prediction System with institutional-level algorithms providing highly accurate real-time price forecasts. The system integrates multiple real-time data sources including Yahoo Finance, Twelve Data, Polygon.io, Financial Modeling Prep, and semiconductor industry correlation analysis. Features advanced technical analysis, news sentiment analysis, volume analysis, and professional risk assessment optimized for AMD's semiconductor business model. **Twitter functionality has been completely removed per user request.** Built with pro-trader mindset for maximum prediction accuracy using authentic market data and semiconductor industry expertise.
 
-## Recent Changes (July 29, 2025)
+## Recent Changes (July 30, 2025)
 - **MIGRATION COMPLETE**: Successfully migrated from Replit Agent to Replit environment
 - **AUTHENTIC DATA SOURCES**: Replaced demo API keys with real Financial Modeling Prep, Twelve Data, and OpenAI APIs
 - **UNBIASED PREDICTION ALGORITHM**: Fixed hardcoded BUY bias - algorithm now starts at 0 for balanced analysis
@@ -24,6 +24,10 @@ Professional-grade AMD Stock Prediction System with institutional-level algorith
 - **TREND FILTERING SYSTEM**: RSI + sentiment + trend analysis for "Dip Incoming" alerts and high-confidence signals
 - **BACKTESTING CAPABILITIES**: Historical performance analysis with accuracy %, win rate, deviation metrics, and Sharpe ratio
 - **MODEL PERFORMANCE METRICS**: Real-time model accuracy, confidence calibration, and prediction stability tracking
+- **SMART RATE LIMITING**: Comprehensive rate limiting system prevents 429 errors (250 daily requests, 2-second intervals)
+- **INTELLIGENT API FALLBACKS**: Rate-limited APIs use cached data instead of failing completely
+- **OPTIMIZED CRON SCHEDULE**: Reduced fundamental data fetching to every 2 hours to prevent rate limit abuse
+- **API STATUS MONITORING**: New /api/amd/api-status endpoint shows rate limiting status for all data sources
 
 ## User Preferences
 

@@ -151,6 +151,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // API Rate Limiting Status
+  app.get('/api/amd/api-status', async (req, res) => {
+    try {
+      const { RateLimiter } = await import('./api-services');
+      const fmpStatus = RateLimiter.getStatus('fmp');
+      const yahooStatus = RateLimiter.getStatus('yahoo_finance');
+      const openaiStatus = RateLimiter.getStatus('openai');
+      
+      const status = {
+        fmp: {
+          name: 'Financial Modeling Prep',
+          remaining: fmpStatus.remaining,
+          limit: 250,
+          nextAvailable: fmpStatus.nextAvailable,
+          status: fmpStatus.remaining > 0 ? 'available' : 'rate_limited'
+        },
+        yahoo_finance: {
+          name: 'Yahoo Finance',
+          remaining: yahooStatus.remaining,
+          limit: 1000,
+          nextAvailable: yahooStatus.nextAvailable,
+          status: 'available' // Yahoo Finance rarely rate limits
+        },
+        openai: {
+          name: 'OpenAI',
+          remaining: openaiStatus.remaining,
+          limit: 1000,
+          nextAvailable: openaiStatus.nextAvailable,
+          status: openaiStatus.remaining > 0 ? 'available' : 'rate_limited'
+        }
+      };
+      
+      res.json(status);
+    } catch (error) {
+      console.error('API status error:', error);
+      res.status(500).json({ error: 'Failed to fetch API status' });
+    }
+  });
+
   // Backtesting and model evaluation endpoints
   app.get('/api/amd/backtest/:days?', async (req, res) => {
     try {

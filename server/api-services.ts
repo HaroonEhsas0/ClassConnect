@@ -4,6 +4,74 @@ import PredictionCache from './prediction-cache';
 import type { InsertTechnicalIndicator, InsertNewsArticle, InsertMarketAnomaly, InsertStockPrice, InsertFundamentalData } from '@shared/tesla-schema';
 import * as sentiment from 'sentiment';
 
+// Rate limiting and intelligent API management
+export class RateLimiter {
+  private static requests: Map<string, number[]> = new Map();
+  private static readonly FMP_DAILY_LIMIT = 250; // Conservative limit for free tier
+  private static readonly WINDOW_SIZE = 24 * 60 * 60 * 1000; // 24 hours
+  private static readonly MIN_INTERVAL = 2000; // 2 seconds between requests
+
+  static canMakeRequest(apiProvider: string): boolean {
+    const now = Date.now();
+    const key = `${apiProvider}_requests`;
+    
+    if (!this.requests.has(key)) {
+      this.requests.set(key, []);
+    }
+    
+    const requests = this.requests.get(key)!;
+    
+    // Remove requests older than 24 hours
+    const validRequests = requests.filter(timestamp => now - timestamp < this.WINDOW_SIZE);
+    this.requests.set(key, validRequests);
+    
+    // Check daily limit
+    const limit = apiProvider === 'fmp' ? this.FMP_DAILY_LIMIT : 1000;
+    if (validRequests.length >= limit) {
+      console.log(`⚠️ Daily API limit reached for ${apiProvider} (${validRequests.length}/${limit})`);
+      return false;
+    }
+    
+    // Check minimum interval between requests
+    if (validRequests.length > 0) {
+      const lastRequest = Math.max(...validRequests);
+      if (now - lastRequest < this.MIN_INTERVAL) {
+        console.log(`⚠️ Rate limiting: Wait ${Math.ceil((this.MIN_INTERVAL - (now - lastRequest)) / 1000)}s before next ${apiProvider} request`);
+        return false;
+      }
+    }
+    
+    return true;
+  }
+  
+  static recordRequest(apiProvider: string): void {
+    const key = `${apiProvider}_requests`;
+    if (!this.requests.has(key)) {
+      this.requests.set(key, []);
+    }
+    this.requests.get(key)!.push(Date.now());
+  }
+  
+  static getRemainingRequests(apiProvider: string): number {
+    const key = `${apiProvider}_requests`;
+    const requests = this.requests.get(key) || [];
+    const now = Date.now();
+    const validRequests = requests.filter(timestamp => now - timestamp < this.WINDOW_SIZE);
+    const limit = apiProvider === 'fmp' ? this.FMP_DAILY_LIMIT : 1000;
+    return Math.max(0, limit - validRequests.length);
+  }
+  
+  static getStatus(apiProvider: string): { remaining: number; nextAvailable: Date } {
+    const remaining = this.getRemainingRequests(apiProvider);
+    const key = `${apiProvider}_requests`;
+    const requests = this.requests.get(key) || [];
+    const lastRequest = requests.length > 0 ? Math.max(...requests) : 0;
+    const nextAvailable = new Date(lastRequest + this.MIN_INTERVAL);
+    
+    return { remaining, nextAvailable };
+  }
+}
+
 export class ApiService {
   
   // Log API calls for monitoring
@@ -541,7 +609,7 @@ Provide ONLY valid JSON response with PRICE RANGE (not exact price):
     }
   }
 
-  // Fetch fundamental data
+  // Fetch fundamental data with intelligent rate limiting
   static async fetchFundamentalData(): Promise<void> {
     const startTime = Date.now();
     
@@ -552,9 +620,30 @@ Provide ONLY valid JSON response with PRICE RANGE (not exact price):
         return;
       }
 
-      // Fetch from Financial Modeling Prep using real API key
+      // Check rate limit before making request
+      if (!RateLimiter.canMakeRequest('fmp')) {
+        const status = RateLimiter.getStatus('fmp');
+        console.log(`⏳ FMP rate limit: ${status.remaining} requests remaining, next available: ${status.nextAvailable.toLocaleTimeString()}`);
+        
+        // Use cached data if available instead of making request
+        const cachedData = await teslaStorage.getLatestFundamentalData();
+        if (cachedData) {
+          console.log('📋 Using cached fundamental data due to rate limit');
+          return;
+        }
+        
+        // If no cached data and rate limited, skip this update
+        console.log('⏭️ Skipping fundamental data update due to rate limit');
+        return;
+      }
+
+      console.log(`🔄 Fetching fundamental data (${RateLimiter.getRemainingRequests('fmp')} requests remaining)`);
+
+      // Record the request and make API call
+      RateLimiter.recordRequest('fmp');
       const fmpResponse = await axios.get(
-        `https://financialmodelingprep.com/api/v3/profile/AMD?apikey=${FMP_API_KEY}`
+        `https://financialmodelingprep.com/api/v3/profile/AMD?apikey=${FMP_API_KEY}`,
+        { timeout: 10000 } // 10 second timeout
       );
 
       if (fmpResponse.data && fmpResponse.data.length > 0) {
@@ -571,10 +660,17 @@ Provide ONLY valid JSON response with PRICE RANGE (not exact price):
 
         await teslaStorage.insertFundamentalData(fundamentalData);
         await this.logApiCall('fmp', 'profile', true, Date.now() - startTime);
+        console.log('✅ Fundamental data updated successfully');
       }
-    } catch (error) {
-      console.error('FMP fundamental data error:', error);
-      await this.logApiCall('fmp', 'profile', false, Date.now() - startTime, (error as Error).message);
+    } catch (error: any) {
+      // Handle rate limiting specifically
+      if (error.response?.status === 429) {
+        console.log('⏳ FMP API rate limit reached - using cached data');
+        await this.logApiCall('fmp', 'profile', false, Date.now() - startTime, 'Rate limit exceeded');
+      } else {
+        console.error('FMP fundamental data error:', error.message);
+        await this.logApiCall('fmp', 'profile', false, Date.now() - startTime, error.message);
+      }
     }
   }
 
